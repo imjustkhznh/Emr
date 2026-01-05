@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import { toast } from 'react-toastify';
+import { jwtDecode } from 'jwt-decode';
 
 export default function Login({ onSwitchToSignup }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,9 +24,34 @@ export default function Login({ onSwitchToSignup }) {
         password: formData.password
       });
       
+      // Lưu token vào localStorage
       localStorage.setItem('token', response.token);
-      toast.success('Đăng nhập thành công!');
-      window.location.href = '/dashboard';
+      
+      try {
+        // Kiểm tra định dạng token
+        if (typeof response.accessToken !== 'string' || !response.accessToken) {
+          throw new Error('Token không hợp lệ hoặc không tồn tại');
+        }
+
+        // Giải mã token để lấy thông tin người dùng
+        const decodedToken = jwtDecode(response.accessToken);
+        
+        // Lưu thông tin người dùng vào localStorage
+        localStorage.setItem('user', JSON.stringify(decodedToken));
+        
+        toast.success('Đăng nhập thành công!');
+        
+        // Chuyển hướng dựa trên vai trò
+        if (decodedToken.role === 'doctor' || decodedToken.role === 'admin') {
+          window.location.href = '/doctor/dashboard';
+        } else {
+          window.location.href = '/dashboard';
+        }
+      } catch (decodeError) {
+        console.error('Lỗi giải mã token:', decodeError);
+        toast.error('Có lỗi xảy ra khi xử lý đăng nhập');
+        setLoading(false);
+      }
     } catch (error) {
       setError(error.message || 'Đã có lỗi xảy ra');
       toast.error(error.message || 'Đăng nhập thất bại');

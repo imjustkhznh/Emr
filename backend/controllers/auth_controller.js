@@ -1,11 +1,6 @@
 import bcrypt from 'bcrypt';
 import User from '../models/User_Model.js';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import Session from '../models/Session.js';
-const accessTokenTTL= '15m';
-const refreshTokenTTL= 12*24*60*60*1000; 
-
+import { createAccessToken,createrefreshToken,saveRefreshToken } from '../utils/jwt.js';
 export const Sign_up= async(req,res)=>{
     try {
         const {email,password,name}=req.body;
@@ -45,25 +40,11 @@ export const Sign_in= async(req,res)=>{
         if (!passwordMatch) {
             return res.status(401).json({ message: "Email hoặc mật khẩu không đúng" });
         }
-        const accsessToken = jwt.sign({
-            userId: user._id
-        },process.env.ACCESS_TOKEN_SECRET,
-        {expiresIn:accessTokenTTL});
-         const refreshToken = crypto.randomBytes(40).toString('hex');
-
-        await Session.create({
-            userId: user._id,
-            refreshToken,
-            expiresAt: new Date(Date.now() + refreshTokenTTL) ,
-        })
-        res.cookie('refreshToken',refreshToken,{
-            httpOnly:true,
-            secure:true,
-            sameSite:'strict',
-            maxAge:refreshTokenTTL,
-        });
+        const accessToken = createAccessToken(user);
+        const refreshToken = createrefreshToken();
+        await saveRefreshToken(user,refreshToken,res);
         return res.status(200).json({
-            message:`User ${user.name} đăng nhập thành công`,accsessToken});
+            message:`User ${user.name} đăng nhập thành công`,accessToken});
 
     } catch (error) {
         console.error("Lỗi đăng nhập người dùng:", error);

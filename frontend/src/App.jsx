@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AuthPage from './components/Auth/indexAuth';
+import DoctorLayout from './components/Doctor/DoctorLayout';
+import DoctorDashboard from './pages/doctor/Dashboard';
 
 function App() {
   return (
@@ -10,7 +12,13 @@ function App() {
         <Routes>
           <Route path="/auth/*" element={<AuthPage />} />
           <Route path="/" element={<Navigate to="/auth" replace />} />
-          {/* Add more routes here as you build your application */}
+          
+          {/* Doctor Routes */}
+          <Route path="/doctor" element={<DoctorLayout />}>
+            <Route index element={<Navigate to="/doctor/dashboard" replace />} />
+            <Route path="dashboard" element={<DoctorDashboard />} />
+            {/* Thêm các route khác cho bác sĩ ở đây */}
+          </Route>
         </Routes>
       </Router>
       <ToastContainer

@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
         default: 'patients',
     }
 });
+
 const User = mongoose.model('User',userSchema)
 export default User;
 
