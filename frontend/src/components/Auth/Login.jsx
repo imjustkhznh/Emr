@@ -46,10 +46,12 @@ export default function Login({ onSwitchToSignup }) {
         toast.success('Đăng nhập thành công!');
         
         // Chuyển hướng dựa trên vai trò
-        if (decodedToken.role === 'doctor' || decodedToken.role === 'admin') {
+        if (decodedToken.role === 'doctor' || decodedToken.role === 'Admin') {
           window.location.href = '/doctor/dashboard';
+        } else if (decodedToken.role === 'patients') {
+          window.location.href = '/patient/home';
         } else {
-          window.location.href = '/dashboard';
+          window.location.href = '/';
         }
       } catch (decodeError) {
         console.error('Lỗi giải mã token:', decodeError);

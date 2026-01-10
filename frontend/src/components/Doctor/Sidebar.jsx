@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from '../../assets/img/system/logo.jpg';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -69,8 +70,8 @@ const Sidebar = ({ doctor, loading }) => {
         {/* Logo và tên hệ thống */}
         <div className="flex items-center justify-center py-4 border-b border-[#334155]">
           <div className="flex items-center gap-3">
-            <img src="/assets/logo-medicare.png" alt="MediCare Logo" className="h-10 w-10" />
-            <h1 className="text-lg font-bold text-[#F1F5F9]">MediCare</h1>
+            <img src={logo} alt="HSM Logo" className="h-12 w-12 object-contain mix-blend-multiply" />
+            <h1 className="text-lg font-bold text-[#F1F5F9]">Hệ thống HSM</h1>
           </div>
         </div>
 

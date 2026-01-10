@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Bell } from 'lucide-react';
-
+import logo from "../../assets/img/system/logo.jpg";
 const Header = ({ doctorName, onLogout }) => {
   const navigate = useNavigate();
 
@@ -12,30 +12,24 @@ const Header = ({ doctorName, onLogout }) => {
     navigate('/auth/login');
   };
 
+  const handleDoctorProfileClick = () => {
+    navigate('/doctor/profile');
+  };
+
   return (
     <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-10">
       <div className="w-full px-3 sm:px-4 lg:px-6 flex items-center justify-between h-16 gap-3">
         {/* Logo */}
-        <div className="flex items-center flex-shrink-0 gap-3">
-          <div className="bg-blue-500 rounded-lg p-2 flex-shrink-0">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="white"
-              className="h-8 w-8"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 10h11M9 21V3m12 7h-7m7 0l-3.5 3.5M19 10l-3.5-3.5"
-              />
-            </svg>
-          </div>
-          <span className="text-lg font-bold text-gray-800 whitespace-nowrap">Hệ thống HSM</span>
-        </div>
-
+       <div className="flex items-center flex-shrink-0 gap-3">
+  <div className="bg-white border-2 border-blue-500 rounded-lg p-2 flex-shrink-0">
+    <img 
+      src={logo}
+      alt="Hospital Logo" 
+      className="h-10 w-10 object-contain"
+    />
+  </div>
+  <span className="text-xl font-bold text-gray-800 whitespace-nowrap">Hệ thống HSM</span>
+</div>
         {/* Breadcrumb */}
         <nav className="hidden md:flex items-center text-sm text-gray-500 whitespace-nowrap">
           <span className="hover:text-gray-700">Trang chủ</span>
@@ -64,7 +58,10 @@ const Header = ({ doctorName, onLogout }) => {
         {/* Notification and User Actions */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <div className="flex items-center gap-3 pr-3 border-r border-gray-200">
-            <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold uppercase">
+            <div
+              className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold uppercase cursor-pointer"
+              onClick={handleDoctorProfileClick}
+            >
               {(doctorName || 'BS')
                 .split(' ')
                 .filter(Boolean)
@@ -73,7 +70,12 @@ const Header = ({ doctorName, onLogout }) => {
                 .slice(0, 2)}
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-800 truncate max-w-[140px] sm:max-w-[200px]">BS. {doctorName || 'Đang tải'}</p>
+              <p
+                className="text-sm font-medium text-gray-800 truncate max-w-[140px] sm:max-w-[200px] cursor-pointer"
+                onClick={handleDoctorProfileClick}
+              >
+                BS. {doctorName || 'Đang tải'}
+              </p>
               <p className="text-xs text-gray-500">Tài khoản bác sĩ</p>
             </div>
           </div>

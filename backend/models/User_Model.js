@@ -34,8 +34,11 @@ const userSchema = new mongoose.Schema({
         enum: ['Admin', 'doctor', 'patients', 'Nurse'],
         default: 'patients',
     }
-});
 
+});
+userSchema.index({email:1},{unique:true});
+userSchema.index({phone:1},{sparse:true,unique:true});
+userSchema.index({name:1});
 const User = mongoose.model('User',userSchema)
 export default User;
 

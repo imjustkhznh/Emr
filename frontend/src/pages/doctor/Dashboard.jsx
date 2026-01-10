@@ -154,12 +154,12 @@ const DoctorDashboard = () => {
           <button className="mt-4 text-blue-600 hover:underline">Xem tất cả</button>
         </div>
 
-        {/* Biểu đồ */}
+        {/* Lịch làm việc hôm nay */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Số lượng bệnh nhân 7 ngày qua</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Lịch làm việc hôm nay</h3>
           <div className="h-64">
-            {/* Placeholder for chart */}
-            <div className="flex items-center justify-center h-full text-gray-400">Biểu đồ sẽ hiển thị ở đây</div>
+            {/* Placeholder for schedule */}
+            <div className="flex items-center justify-center h-full text-gray-400">Lịch làm việc sẽ hiển thị ở đây</div>
           </div>
         </div>
       </div>

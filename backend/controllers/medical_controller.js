@@ -25,13 +25,13 @@ export const createMedicalRecord = async (req, res) => {
 
         // Validate required fields
         if (!patientId || !visitDate || !chiefComplaint || !diagnosis) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 message: "Thiếu thông tin bắt buộc",
                 required: ["patientId", "visitDate", "chiefComplaint", "diagnosis"]
             });
         }
 
-       
+
         const newRecord = await MedicalRecord.create({
             patientId,
             doctorId,
@@ -57,7 +57,7 @@ export const createMedicalRecord = async (req, res) => {
         });
     } catch (error) {
         console.error("Lỗi tạo hồ sơ y tế:", error);
-        
+
         // ✅ Trả về lỗi chi tiết hơn
         if (error.name === 'ValidationError') {
             return res.status(400).json({
@@ -65,7 +65,7 @@ export const createMedicalRecord = async (req, res) => {
                 errors: Object.values(error.errors).map(e => e.message)
             });
         }
-        
+
         return res.status(500).json({
             message: "Lỗi máy chủ, vui lòng thử lại sau"
         });
@@ -74,11 +74,8 @@ export const createMedicalRecord = async (req, res) => {
 
 export const getMedicalRecords = async (req, res) => {
     try {
-        const doctorId = req.user._id;
-        const userRole = req.user.role;
-
-        // ✅ Bác sĩ chỉ xem hồ sơ của mình, admin xem tất cả
-        const query = userRole === 'admin' ? {} : { doctorId };
+        // ✅ Sử dụng filter query từ middleware (đã được set dựa trên role)
+        const query = req.filterQuery || {};
 
         const medicalRecords = await MedicalRecord.find(query)
             .populate('patientId', 'name age gender') // ✅ Thêm thông tin bệnh nhân
@@ -92,8 +89,8 @@ export const getMedicalRecords = async (req, res) => {
         });
     } catch (error) {
         console.error("Lỗi lấy danh sách hồ sơ y tế:", error);
-        return res.status(500).json({ 
-            message: "Lỗi máy chủ, vui lòng thử lại sau" 
+        return res.status(500).json({
+            message: "Lỗi máy chủ, vui lòng thử lại sau"
         });
     }
 };
