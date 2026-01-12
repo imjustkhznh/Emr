@@ -39,17 +39,62 @@ export const createAppointment = async (req, res) => {
   try {
     const { patientId, doctorProfileId, appointmentDate, appointmentTime, reason } = req.body;
     
+    console.log('Creating appointment with data:', { patientId, doctorProfileId, appointmentDate, appointmentTime, reason });
+    
     // Validation
-    if (!patientId) return res.status(400).json({ error: 'patientId là bắt buộc' });
-    if (!doctorProfileId) return res.status(400).json({ error: 'doctorProfileId là bắt buộc' });
-    if (!appointmentDate) return res.status(400).json({ error: 'appointmentDate là bắt buộc' });
-    if (!appointmentTime) return res.status(400).json({ error: 'appointmentTime là bắt buộc' });
-    if (!reason) return res.status(400).json({ error: 'reason là bắt buộc' });
+    if (!patientId) return res.status(400).json({ message: 'patientId là bắt buộc' });
+    if (!doctorProfileId) return res.status(400).json({ message: 'doctorProfileId là bắt buộc' });
+    if (!appointmentDate) return res.status(400).json({ message: 'appointmentDate là bắt buộc' });
+    if (!appointmentTime) return res.status(400).json({ message: 'appointmentTime là bắt buộc' });
+    if (!reason) return res.status(400).json({ message: 'reason là bắt buộc' });
     
     const appointment = await Appointment.create(req.body);
     res.status(201).json({ message: 'Tạo lịch hẹn thành công', data: appointment });
   } catch (err) {
     console.error('Error creating appointment:', err);
     res.status(400).json({ message: 'Tạo lịch hẹn thất bại', error: err.message });
+  }
+};
+
+// Cập nhật lịch hẹn
+export const updateAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { patientId, doctorProfileId, appointmentDate, appointmentTime, reason, status } = req.body;
+    
+    // Validation
+    if (!patientId) return res.status(400).json({ message: 'patientId là bắt buộc' });
+    if (!appointmentDate) return res.status(400).json({ message: 'appointmentDate là bắt buộc' });
+    if (!appointmentTime) return res.status(400).json({ message: 'appointmentTime là bắt buộc' });
+    if (!reason) return res.status(400).json({ message: 'reason là bắt buộc' });
+    
+    const appointment = await Appointment.findByIdAndUpdate(id, req.body, { new: true });
+    
+    if (!appointment) {
+      return res.status(404).json({ message: 'Không tìm thấy lịch hẹn' });
+    }
+    
+    res.status(200).json({ message: 'Cập nhật lịch hẹn thành công', data: appointment });
+  } catch (err) {
+    console.error('Error updating appointment:', err);
+    res.status(400).json({ message: 'Cập nhật lịch hẹn thất bại', error: err.message });
+  }
+};
+
+// Xóa lịch hẹn
+export const deleteAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const appointment = await Appointment.findByIdAndDelete(id);
+    
+    if (!appointment) {
+      return res.status(404).json({ message: 'Không tìm thấy lịch hẹn' });
+    }
+    
+    res.status(200).json({ message: 'Xóa lịch hẹn thành công', data: appointment });
+  } catch (err) {
+    console.error('Error deleting appointment:', err);
+    res.status(400).json({ message: 'Xóa lịch hẹn thất bại', error: err.message });
   }
 };
