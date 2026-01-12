@@ -30,7 +30,7 @@ const PatientHome = () => {
             <span className="text-primary-600">nhanh chóng và an toàn</span> ngay tại nhà.
           </h1>
           <p className="text-sm lg:text-base text-secondary-600 max-w-xl">
-            Hệ thống HMS giúp bạn quản lý lịch khám, xem kết quả xét nghiệm và lưu trữ hồ sơ sức
+            Hệ thống MediCare EMR giúp bạn quản lý lịch khám, xem kết quả xét nghiệm và lưu trữ hồ sơ sức
             khỏe mọi lúc, mọi nơi.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -349,7 +349,7 @@ const PatientHome = () => {
       <section className="bg-white border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
           <h2 className="text-2xl font-semibold text-secondary-900 mb-6">
-            Các chuyên khoa y tế tại HMS
+            Các chuyên khoa y tế tại MediCare EMR
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
             {[
@@ -397,7 +397,7 @@ const PatientHome = () => {
 
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-sm">
             <p className="text-secondary-700 text-sm">
-              Đăng ký email và thông tin bảo hiểm để nhận tư vấn chi tiết từ đội ngũ HMS.
+              Đăng ký email và thông tin bảo hiểm để nhận tư vấn chi tiết từ đội ngũ MediCare EMR.
             </p>
             <form className="space-y-3 text-sm">
               <div>

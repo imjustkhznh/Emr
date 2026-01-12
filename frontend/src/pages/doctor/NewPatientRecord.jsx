@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { medicalAPI } from '../../services/api';
+import { patientsAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
 const initialState = {
@@ -27,14 +27,11 @@ const NewPatientRecord = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      // required fields per backend: patientId, visitDate, chiefComplaint, diagnosis
-      await medicalAPI.createRecord({
-        ...form,
-      });
-      toast.success('Tạo hồ sơ y tế thành công');
-      navigate('/doctor/patients');
+      await patientsAPI.createPatient(form);
+      toast.success('Tạo hồ sơ bệnh nhân thành công!');
+      navigate(-1);
     } catch (error) {
-      toast.error(error.message || 'Tạo hồ sơ thất bại');
+      toast.error('Tạo hồ sơ thất bại!');
     } finally {
       setSubmitting(false);
     }

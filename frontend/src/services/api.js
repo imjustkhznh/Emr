@@ -56,9 +56,28 @@ export const userAPI = {
   }
 };
 
-export const medicalAPI = {
-  createRecord: async (payload) => {
-    const { data } = await api.post('/medical', payload);
+export const appointmentAPI = {
+  getAppointments: async () => {
+    const { data } = await api.get('/appointments');
+    return data;
+  },
+  createAppointment: async (payload) => {
+    const { data } = await api.post('/appointments', payload);
+    return data;
+  }
+};
+
+export const patientsAPI = {
+  createPatient: async (payload) => {
+    const { data } = await api.post('/medical/records', payload);
+    return data;
+  },
+  getPatients: async () => {
+    const { data } = await api.get('/medical/records');
+    return data;
+  },
+  getPatientById: async (id) => {
+    const { data } = await api.get(`/medical/records/${id}`);
     return data;
   }
 };

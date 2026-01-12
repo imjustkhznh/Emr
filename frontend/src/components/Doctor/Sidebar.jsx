@@ -1,6 +1,5 @@
 import React from 'react';
-import logo from '../../assets/img/system/logo.jpg';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -10,11 +9,13 @@ import {
   Settings, 
   Stethoscope,
   ClipboardList,
-  LogOut
+  LogOut,
+  Heart
 } from 'lucide-react';
 
 const Sidebar = ({ doctor, loading }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const displayName = doctor?.name || 'Đang tải...';
   const subtitle = doctor?.role ? doctor.role : (doctor?.email || 'Nội tổng quát');
   const initials = doctor?.name
@@ -64,14 +65,21 @@ const Sidebar = ({ doctor, loading }) => {
     },
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    navigate('/auth/login');
+  };
+
   return (
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-64 bg-[#1E293B] text-[#F1F5F9]">
         {/* Logo và tên hệ thống */}
         <div className="flex items-center justify-center py-4 border-b border-[#334155]">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="HSM Logo" className="h-12 w-12 object-contain mix-blend-multiply" />
-            <h1 className="text-lg font-bold text-[#F1F5F9]">Hệ thống HSM</h1>
+            <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-lg p-2">
+              <Heart className="h-6 w-6 fill-white" />
+            </div>
+            <h1 className="text-lg font-bold text-[#F1F5F9]">MediCare EMR</h1>
           </div>
         </div>
 
@@ -106,7 +114,7 @@ const Sidebar = ({ doctor, loading }) => {
 
         {/* Footer */}
         <div className="border-t border-[#334155] p-4">
-          <button className="flex items-center gap-2 text-sm font-medium text-[#F1F5F9] hover:text-[#EF4444]">
+          <button onClick={handleLogout} className="flex items-center gap-2 text-sm font-medium text-[#F1F5F9] hover:text-[#EF4444]">
             <LogOut className="h-5 w-5" />
             Đăng xuất
           </button>

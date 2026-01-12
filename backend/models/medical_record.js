@@ -110,7 +110,8 @@ const medicalRecordSchema = new mongoose.Schema({
   }
   
 }, {
-  timestamps: true // Tự động thêm createdAt và updatedAt
+  timestamps: true, // Tự động thêm createdAt và updatedAt
+  collection: 'patients' // Chỉ định collection name
 });
 
 // Index để tìm kiếm nhanh

@@ -59,7 +59,7 @@ const PatientNavbar = () => {
             Y
           </div>
           <div className="leading-tight">
-            <p className="font-bold text-primary-700 text-sm">Hệ thống Y tế HMS</p>
+            <p className="font-bold text-primary-700 text-sm">Hệ thống y tế MediCare EMR</p>
             <p className="text-[11px] text-gray-500">Chăm sóc sức khỏe toàn diện</p>
           </div>
         </div>

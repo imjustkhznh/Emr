@@ -25,7 +25,7 @@ const PatientLayout = () => {
         <Outlet />
       </main>
       <footer className="bg-white border-t border-gray-100 py-4 text-center text-xs text-gray-500">
-        © {new Date().getFullYear()} HMS Hospital. All rights reserved.
+        © {new Date().getFullYear()} MediCare EMR. All rights reserved.
       </footer>
     </div>
   );

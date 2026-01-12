@@ -16,14 +16,21 @@ const userSchema = new mongoose.Schema({
         required:true,
         trim: true,
     },
+    dateOfBirth: {
+        type: Date,
+        required: false,
+    },
+    gender: {
+        type: String,
+        enum: ['male', 'female', 'other'],
+        required: false,
+    },
     avatarUrl:{
         type:String,
-
     },
     phone:{
         type:String,
         sparse:true,//Cho phép giá trị null trong trường unique
-
     },
     timestramp:{
         type:Date,
