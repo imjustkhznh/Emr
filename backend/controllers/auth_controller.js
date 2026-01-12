@@ -29,14 +29,23 @@ export const Sign_up= async(req,res)=>{
 export const Sign_in= async(req,res)=>{
     try {
         const {email,password}=req.body;
+        console.log("Sign_in request:", {email, password});
         if(!email || !password){
             return res.status(400).json({message:"Vui lòng điền đầy đủ thông tin"});
         }
         const user = await User.findOne({ email });
+        console.log("User found:", user ? `${user.email} (${user.role})` : "Not found");
         if (!user) {
             return res.status(401).json({ message: "Email hoặc mật khẩu không đúng" });
         }
-        const passwordMatch = await bcrypt.compare(password, user.hashpassword);
+        if (!user.hashpassword && !user.passwordHash) {
+            console.log("No password hash found");
+            return res.status(401).json({ message: "Tài khoản không có mật khẩu, vui lòng liên hệ quản trị viên" });
+        }
+        const passwordHash = user.hashpassword || user.passwordHash;
+        console.log("Comparing passwords...");
+        const passwordMatch = await bcrypt.compare(password, passwordHash);
+        console.log("Password match:", passwordMatch);
         if (!passwordMatch) {
             return res.status(401).json({ message: "Email hoặc mật khẩu không đúng" });
         }
