@@ -59,7 +59,7 @@ export const isAdminRole = (req, res, next) => {
 /**
  * Middleware tự động set filter query cho medical records dựa trên role
  * - Admin: xem tất cả records (query = {})
- * - Doctor: chỉ xem records của chính mình (query = { doctorId: req.user._id })
+ * - Doctor: chỉ xem bệnh nhân được chỉ định (query = { assignedDoctors: userId })
  * - Patient: chỉ xem records của chính mình (query = { patientId: req.user._id })
  */
 export const setMedicalRecordFilter = (req, res, next) => {
@@ -76,8 +76,8 @@ export const setMedicalRecordFilter = (req, res, next) => {
             // Admin xem tất cả
             req.filterQuery = {};
         } else if (userRole === 'doctor') {
-            // Bác sĩ chỉ xem records của mình
-            req.filterQuery = { doctorId: userId };
+            // Bác sĩ chỉ xem bệnh nhân được chỉ định
+            req.filterQuery = { assignedDoctors: userId };
         } else if (userRole === 'patients' || userRole === 'patient') {
             // Bệnh nhân chỉ xem records của mình
             req.filterQuery = { patientId: userId };

@@ -53,7 +53,17 @@ export const Sign_in= async(req,res)=>{
         const refreshToken = createrefreshToken();
         await saveRefreshToken(user,refreshToken,res);
         return res.status(200).json({
-            message:`User ${user.name} đăng nhập thành công`,accessToken});
+            message:`User ${user.name} đăng nhập thành công`,
+            accessToken,
+            user: {
+              _id: user._id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+              phone: user.phone,
+              avatarUrl: user.avatarUrl
+            }
+        });
 
     } catch (error) {
         console.error("Lỗi đăng nhập người dùng:", error);

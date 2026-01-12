@@ -24,11 +24,16 @@ export default function Login({ onSwitchToSignup }) {
         password: formData.password
       });
       
-      // Lưu token vào localStorage (giữ cả key cũ để tương thích)
+      // Lưu token vào localStorage
       const tokenToStore = response?.accessToken || response?.token;
       if (tokenToStore) {
         localStorage.setItem('accessToken', tokenToStore);
         localStorage.setItem('token', tokenToStore);
+      }
+      
+      // Lưu user object từ response backend (có chứa _id)
+      if (response?.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
       }
       
       try {
@@ -37,11 +42,8 @@ export default function Login({ onSwitchToSignup }) {
           throw new Error('Token không hợp lệ hoặc không tồn tại');
         }
 
-        // Giải mã token để lấy thông tin người dùng
+        // Giải mã token để lấy role
         const decodedToken = jwtDecode(response.accessToken);
-        
-        // Lưu thông tin người dùng vào localStorage
-        localStorage.setItem('user', JSON.stringify(decodedToken));
         
         toast.success('Đăng nhập thành công!');
         

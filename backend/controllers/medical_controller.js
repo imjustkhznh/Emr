@@ -77,10 +77,16 @@ export const getMedicalRecords = async (req, res) => {
         // ✅ Sử dụng filter query từ middleware (đã được set dựa trên role)
         const query = req.filterQuery || {};
 
-        const medicalRecords = await MedicalRecord.find(query)
-            .populate('patientId', 'name age gender') // ✅ Thêm thông tin bệnh nhân
-            .populate('doctorId', 'name specialty') // ✅ Thêm thông tin bác sĩ
-            .sort({ visitDate: -1 }); // ✅ Sắp xếp mới nhất trước
+        // Thử lấy từ full schema model trước, nếu không có thì lấy từ simple schema
+        let medicalRecords = await MedicalRecord.find(query)
+            .sort({ visitDate: -1, createdAt: -1 });
+
+        // Nếu không có kết quả, kiểm tra collection medicalrecords đơn giản
+        if (medicalRecords.length === 0) {
+            const db = MedicalRecord.collection.conn.db;
+            const simpleCollection = db.collection('medicalrecords');
+            medicalRecords = await simpleCollection.find(query).sort({ createdAt: -1 }).toArray();
+        }
 
         return res.status(200).json({
             message: "Lấy danh sách hồ sơ thành công",

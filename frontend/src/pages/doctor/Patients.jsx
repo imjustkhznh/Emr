@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 import {
   Eye,
   FilePlus,
@@ -13,50 +15,30 @@ import {
 // Component này được render bên trong `DoctorLayout`,
 // vì vậy không cần tự render Sidebar và Header nữa.
 const Patients = () => {
-  // Dữ liệu demo: nhiều bệnh nhân để thấy rõ phần phân trang
-  const patients = [
-    {
-      id: 1,
-      name: 'Nguyễn Văn A',
-      age: 30,
-      gender: 'Nam',
-      phone: '0912345678',
-      status: 'chua_kham',
-    },
-    {
-      id: 2,
-      name: 'Trần Thị B',
-      age: 25,
-      gender: 'Nữ',
-      phone: '0987654321',
-      status: 'da_kham',
-    },
-    {
-      id: 3,
-      name: 'Lê Văn C',
-      age: 40,
-      gender: 'Nam',
-      phone: '0909123123',
-      status: 'dang_kham',
-    },
-    {
-      id: 4,
-      name: 'Phạm Thị D',
-      age: 35,
-      gender: 'Nữ',
-      phone: '0911000001',
-      status: 'da_huy',
-    },
-    // Các dòng dưới chỉ để minh họa nhiều bản ghi (UI), bạn có thể thay bằng dữ liệu thật
-    ...Array.from({ length: 18 }).map((_, index) => ({
-      id: 5 + index,
-      name: `Bệnh nhân ${5 + index}`,
-      age: 20 + ((index * 3) % 40),
-      gender: index % 2 === 0 ? 'Nam' : 'Nữ',
-      phone: `09${(1000000 + index * 1234).toString().slice(0, 8)}`,
-      status: ['chua_kham', 'dang_kham', 'da_kham', 'da_huy'][index % 4],
-    })),
-  ];
+  // State cho danh sách bệnh nhân từ API
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/medical/records')
+      .then(res => {
+        // res.data.data là mảng medicalRecords, mỗi record có patientId là thông tin bệnh nhân
+        const mappedPatients = res.data.data.map(record => ({
+          id: record._id,
+          name: record.name,
+          age: record.age,
+          gender: record.gender,
+          phone: record.phone,
+          status: record.status,
+        }));
+        setPatients(mappedPatients);
+        setLoading(false);
+      })
+      .catch(err => {
+        setPatients([]);
+        setLoading(false);
+      });
+  }, []);
 
   // Trạng thái lọc theo ngày / tháng / lịch sử
   const [viewMode, setViewMode] = useState('today'); // 'today' | 'date' | 'month' | 'history'
@@ -108,8 +90,9 @@ const Patients = () => {
     }
   };
 
+  const navigate = useNavigate();
   const handleViewInfo = (id) => {
-    alert(`Xem thông tin bệnh nhân ${id}`);
+    navigate(`/doctor/patient/${id}`);
   };
 
   const handleCreateRecord = (id) => {
@@ -213,6 +196,7 @@ const Patients = () => {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-gray-100 text-left">
+              <th className="border px-4 py-2 font-mono text-xs">ID</th>
               <th className="border px-4 py-2">Tên bệnh nhân</th>
               <th className="border px-4 py-2 text-center">Tuổi</th>
               <th className="border px-4 py-2 text-center">Giới tính</th>
@@ -224,6 +208,7 @@ const Patients = () => {
           <tbody>
             {paginatedPatients.map((patient) => (
               <tr key={patient.id} className="hover:bg-gray-50">
+                <td className="border px-4 py-3 text-gray-600 font-mono text-xs">{patient.id.substring(0, 8)}</td>
                 <td className="border px-4 py-3 font-medium text-gray-800">{patient.name}</td>
                 <td className="border px-4 py-3 text-center">{patient.age}</td>
                 <td className="border px-4 py-3 text-center">{patient.gender}</td>

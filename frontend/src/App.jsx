@@ -7,9 +7,11 @@ import DoctorDashboard from './pages/doctor/Dashboard';
 import NewPatientRecord from './pages/doctor/NewPatientRecord';
 import DoctorProfile from './pages/doctor/DoctorProfile';
 import Patients from './pages/doctor/Patients';
+import PatientDetail from './pages/doctor/PatientDetail';
 import PatientLayout from './components/Patient/PatientLayout';
 import PatientHome from './pages/patient/Home';
 import Profile from './pages/patient/Profile';
+import DoctorAppointments from './pages/doctor/Appointments';
 import Appointments from './pages/patient/Appointments';
 import Visits from './pages/patient/Visits';
 import Results from './pages/patient/Results';
@@ -35,6 +37,8 @@ function App() {
             <Route path="patients" element={<Patients />} />
             <Route path="patients/new" element={<NewPatientRecord />} />
             <Route path="profile" element={<DoctorProfile />} />
+            <Route path="patient/:id" element={<PatientDetail />} />
+            <Route path="appointments" element={<DoctorAppointments />} />
             {/* Thêm các route khác cho bác sĩ ở đây */}
           </Route>
 

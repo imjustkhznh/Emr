@@ -1,0 +1,122 @@
+[
+  {
+    "_id": "6964ddbdd00ae1bd7da27077",
+    "name": "Nguyễn Thế Hùng",
+    "age": 45,
+    "gender": "Nam",
+    "phone": "0912345678",
+    "department": "Nội tổng hợp",
+    "specialty": "Nội khoa",
+    "email": "doctor1@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da27079",
+    "name": "Trần Đình Khoa",
+    "age": 39,
+    "gender": "Nam",
+    "phone": "0987654321",
+    "department": "Ngoại tổng hợp",
+    "specialty": "Ngoại khoa",
+    "email": "doctor2@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da2707b",
+    "name": "Lê Minh Tuấn",
+    "age": 50,
+    "gender": "Nam",
+    "phone": "0909123123",
+    "department": "Nhi",
+    "specialty": "Nhi khoa",
+    "email": "doctor3@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da2707d",
+    "name": "Phạm Văn Hiệp",
+    "age": 42,
+    "gender": "Nam",
+    "phone": "0911000001",
+    "department": "Sản",
+    "specialty": "Sản phụ khoa",
+    "email": "doctor4@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da2707f",
+    "name": "Hoàng Văn Nam",
+    "age": 38,
+    "gender": "Nam",
+    "phone": "0910000002",
+    "department": "Tim mạch",
+    "specialty": "Tim mạch",
+    "email": "doctor5@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da27081",
+    "name": "Vũ Minh Châu",
+    "age": 36,
+    "gender": "Nữ",
+    "phone": "0910001234",
+    "department": "Da liễu",
+    "specialty": "Da liễu",
+    "email": "doctor6@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da27083",
+    "name": "Đặng Quốc Khánh",
+    "age": 41,
+    "gender": "Nam",
+    "phone": "0910002468",
+    "department": "Thần kinh",
+    "specialty": "Thần kinh",
+    "email": "doctor7@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da27085",
+    "name": "Bùi Thị Thanh Hương",
+    "age": 35,
+    "gender": "Nữ",
+    "phone": "0910003702",
+    "department": "Mắt",
+    "specialty": "Nhãn khoa",
+    "email": "doctor8@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da27087",
+    "name": "Phan Anh Tuấn",
+    "age": 44,
+    "gender": "Nam",
+    "phone": "0910004936",
+    "department": "Tai mũi họng",
+    "specialty": "Tai mũi họng",
+    "email": "doctor9@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  },
+  {
+    "_id": "6964ddbdd00ae1bd7da27089",
+    "name": "Đỗ Thị Lan Anh",
+    "age": 37,
+    "gender": "Nữ",
+    "phone": "0910006170",
+    "department": "Răng hàm mặt",
+    "specialty": "Răng hàm mặt",
+    "email": "doctor10@hospital.com",
+    "status": "active",
+    "createdAt": "2026-01-12T11:31:16.865+00:00"
+  }
+]
