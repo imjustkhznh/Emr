@@ -52,6 +52,8 @@ export default function Login({ onSwitchToSignup }) {
           window.location.href = '/doctor/dashboard';
         } else if (decodedToken.role === 'patients') {
           window.location.href = '/patient/home';
+        } else if (decodedToken.role === 'Nurse' || decodedToken.role === 'nurse') {
+          window.location.href = '/staff/dashboard';
         } else {
           window.location.href = '/';
         }

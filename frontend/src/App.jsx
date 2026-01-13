@@ -8,6 +8,8 @@ import NewPatientRecord from './pages/doctor/NewPatientRecord';
 import DoctorProfile from './pages/doctor/DoctorProfile';
 import Patients from './pages/doctor/Patients';
 import PatientDetail from './pages/doctor/PatientDetail';
+import DoctorPrescriptions from './pages/doctor/Prescriptions';
+import DoctorExaminations from './pages/doctor/Examinations';
 import PatientLayout from './components/Patient/PatientLayout';
 import PatientHome from './pages/patient/Home';
 import Profile from './pages/patient/Profile';
@@ -21,6 +23,12 @@ import Notifications from './pages/patient/Notifications';
 import Telemedicine from './pages/patient/Telemedicine';
 import Reviews from './pages/patient/Reviews';
 import Articles from './pages/patient/Articles';
+import AdminPrescriptions from './pages/admin/Prescriptions';
+import StaffLayout from './components/Staff/StaffLayout';
+import StaffPrescriptions from './pages/staff/Prescriptions';
+import StaffAppointments from './pages/staff/Appointments';
+import StaffDashboard from './pages/staff/Dashboard';
+import StaffPatients from './pages/staff/Patients';
 
 function App() {
   return (
@@ -39,7 +47,8 @@ function App() {
             <Route path="profile" element={<DoctorProfile />} />
             <Route path="patient/:id" element={<PatientDetail />} />
             <Route path="appointments" element={<DoctorAppointments />} />
-            {/* Thêm các route khác cho bác sĩ ở đây */}
+            <Route path="prescriptions" element={<DoctorPrescriptions />} />
+            <Route path="examinations" element={<DoctorExaminations />} />
           </Route>
 
           {/* Patient Routes */}
@@ -56,6 +65,18 @@ function App() {
             <Route path="telemedicine" element={<Telemedicine />} />
             <Route path="reviews" element={<Reviews />} />
             <Route path="articles" element={<Articles />} />
+          </Route>
+
+          {/* Admin Routes */}
+          <Route path="/admin/prescriptions" element={<AdminPrescriptions />} />
+
+          {/* Staff Routes */}
+          <Route path="/staff" element={<StaffLayout />}>
+            <Route index element={<Navigate to="/staff/dashboard" replace />} />
+            <Route path="dashboard" element={<StaffDashboard />} />
+            <Route path="patients" element={<StaffPatients />} />
+            <Route path="prescriptions" element={<StaffPrescriptions />} />
+            <Route path="appointments" element={<StaffAppointments />} />
           </Route>
         </Routes>
       </Router>

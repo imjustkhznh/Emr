@@ -40,8 +40,12 @@ const userSchema = new mongoose.Schema({
         type:String,
         enum: ['Admin', 'doctor', 'patients', 'Nurse'],
         default: 'patients',
+    },
+    patientCode: {
+        type: String,
+        unique: true,
+        sparse: true,
     }
-
 });
 userSchema.index({email:1},{unique:true});
 userSchema.index({phone:1},{sparse:true,unique:true});

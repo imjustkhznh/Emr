@@ -30,7 +30,7 @@ const DoctorLayout = () => {
       <div className="flex-1 overflow-auto focus:outline-none">
         <Header doctorName={doctor?.name || 'Bác sĩ'} />
         <main className="flex-1 relative pb-8 z-0 overflow-y-auto">
-          <div className="max-w-4xl px-4 sm:px-6 md:px-8 py-6">
+          <div className="w-full px-4 sm:px-6 md:px-8 py-6">
             <Outlet context={{ doctor, loading }} />
           </div>
         </main>

@@ -17,7 +17,7 @@ const Notifications = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8">
+    <div className="w-full px-4 lg:px-8 py-8">
       <h1 className="text-2xl font-semibold text-secondary-900 mb-4">
         Thông báo &amp; nhắc lịch khám
       </h1>

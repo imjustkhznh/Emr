@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../services/api';
+import { appointmentAPI, userAPI } from '../../services/apiService';
 import { ChevronLeft, ChevronRight, Plus, AlertCircle, Edit2, Trash2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const patientsSampleIds = [
   { id: '507f1f77bcf86cd799439001', name: 'Nguyễn Văn An' },
@@ -35,6 +36,7 @@ const patientsList = [
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -48,20 +50,39 @@ const Appointments = () => {
   const [editingId, setEditingId] = useState(null);
 
   const currentUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('currentUser')) || {};
+
+  // Fetch appointments và patients từ MongoDB
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch appointments
+        const appointmentsRes = await appointmentAPI.getAll();
+        if (appointmentsRes.data && appointmentsRes.data.data) {
+          setAppointments(appointmentsRes.data.data);
+        }
+
+        // Fetch patients list
+        const patientsRes = await userAPI.getAll();
+        if (patientsRes.data && patientsRes.data.data) {
+          setPatients(patientsRes.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Lỗi khi tải dữ liệu từ MongoDB');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
   const doctorProfileId = currentUser._id;
 
   const pageSize = 10;
   const totalPages = Math.ceil(appointments.length / pageSize);
   const paginatedAppointments = appointments.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-  useEffect(() => {
-    api.get('/appointments')
-      .then(res => {
-        setAppointments(res.data.data || []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -80,12 +101,15 @@ const Appointments = () => {
 
   const handleDelete = (appointmentId) => {
     if (window.confirm('Bạn có chắc muốn xóa lịch hẹn này?')) {
-      api.delete(`/appointments/${appointmentId}`)
+      appointmentAPI.delete(appointmentId)
         .then(() => {
           setAppointments(appointments.filter(a => a._id !== appointmentId));
+          toast.success('Xóa lịch hẹn thành công');
         })
         .catch(err => {
-          setError('Xóa lịch hẹn thất bại: ' + (err.response?.data?.message || err.message));
+          const message = err.response?.data?.message || err.message;
+          setError('Xóa lịch hẹn thất bại: ' + message);
+          toast.error('Xóa lịch hẹn thất bại');
         });
     }
   };
@@ -114,37 +138,43 @@ const Appointments = () => {
     
     if (editingId) {
       // Update appointment
-      api.put(`/appointments/${editingId}`, appointmentData)
+      appointmentAPI.update(editingId, appointmentData)
         .then(res => {
           setAppointments(appointments.map(a => a._id === editingId ? res.data.data : a));
           setShowForm(false);
           setEditingId(null);
           setForm({ patientId: '', appointmentDate: '', appointmentTime: '', reason: '' });
           setError('');
+          toast.success('Cập nhật lịch hẹn thành công');
         })
         .catch(err => {
-          setError('Cập nhật lịch hẹn thất bại: ' + (err.response?.data?.message || err.message));
+          const message = err.response?.data?.message || err.message;
+          setError('Cập nhật lịch hẹn thất bại: ' + message);
+          toast.error('Cập nhật lịch hẹn thất bại');
         });
     } else {
       // Create new appointment
-      api.post('/appointments', appointmentData)
+      appointmentAPI.create(appointmentData)
         .then(res => {
           console.log('Appointment created:', res.data);
           setAppointments([res.data.data, ...appointments]);
           setShowForm(false);
           setForm({ patientId: '', appointmentDate: '', appointmentTime: '', reason: '' });
           setError('');
+          toast.success('Tạo lịch hẹn thành công');
         })
         .catch(err => {
           console.error('Appointment error:', err.response?.data || err.message);
-          setError('Tạo lịch hẹn thất bại: ' + (err.response?.data?.message || err.response?.data?.error || err.message));
+          const message = err.response?.data?.message || err.response?.data?.error || err.message;
+          setError('Tạo lịch hẹn thất bại: ' + message);
+          toast.error('Tạo lịch hẹn thất bại');
         });
     }
   };
 
   return (
-    <div className="p-2 md:p-4 bg-gray-50 min-h-screen w-screen overflow-x-auto">
-      <div className="w-full">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-blue-700">Quản lý lịch hẹn</h1>
@@ -170,14 +200,14 @@ const Appointments = () => {
                   type="text" 
                   value={form.patientId} 
                   onChange={handleChange}
-                  placeholder="Nhập ID hoặc tên bệnh nhân"
+                  placeholder="Chọn bệnh nhân"
                   list="patients-list"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required 
                 />
                 <datalist id="patients-list">
-                  {patientsList.map(p => (
-                    <option key={p.id} value={p.id}>{p.id} - {p.name}</option>
+                  {patients.map(p => (
+                    <option key={p._id} value={p._id}>{p.name}</option>
                   ))}
                 </datalist>
               </div>
@@ -244,7 +274,7 @@ const Appointments = () => {
           <>
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="w-full divide-y divide-gray-200">
                   <thead className="bg-blue-600">
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-white">STT</th>

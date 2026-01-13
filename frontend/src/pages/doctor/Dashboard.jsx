@@ -89,9 +89,10 @@ const DoctorDashboard = () => {
   );
 
   return (
-    <div className="space-y-6 pb-6">
-      {/* Main Header */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-lg p-8 relative overflow-hidden">
+    <div className="w-full px-4 sm:px-6 md:px-8 py-6">
+      <div className="space-y-6 pb-6">
+        {/* Main Header */}
+        <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-lg p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 opacity-10">
           <Users className="h-48 w-48" />
         </div>
@@ -255,6 +256,7 @@ const DoctorDashboard = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

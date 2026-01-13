@@ -1,6 +1,19 @@
 
 import User from '../models/User_Model.js';
 
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-hashpassword');
+    return res.status(200).json({
+      message: 'Lấy danh sách người dùng thành công',
+      data: users
+    });
+  } catch (error) {
+    console.error('Lỗi lấy danh sách người dùng:', error);
+    return res.status(500).json({ message: 'Lỗi máy chủ, vui lòng thử lại sau' });
+  }
+};
+
 export const getUserProfile= async(req,res)=>{
     try {
      
