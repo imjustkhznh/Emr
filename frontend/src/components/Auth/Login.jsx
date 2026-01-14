@@ -48,7 +48,9 @@ export default function Login({ onSwitchToSignup }) {
         toast.success('Đăng nhập thành công!');
         
         // Chuyển hướng dựa trên vai trò
-        if (decodedToken.role === 'doctor' || decodedToken.role === 'Admin') {
+        if (decodedToken.role === 'Admin') {
+          window.location.href = '/admin/dashboard';
+        } else if (decodedToken.role === 'doctor') {
           window.location.href = '/doctor/dashboard';
         } else if (decodedToken.role === 'patients') {
           window.location.href = '/patient/home';

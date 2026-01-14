@@ -82,4 +82,11 @@ export const patientsAPI = {
   }
 };
 
+export const reportsAPI = {
+  getDoctorReports: async (timeRange = 'month') => {
+    const { data } = await api.get(`/reports/doctor?timeRange=${timeRange}`);
+    return data.data;
+  }
+};
+
 export default api;

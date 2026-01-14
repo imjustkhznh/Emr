@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AuthPage from './components/Auth/indexAuth';
+import ProtectedRoute from './components/ProtectedRoute';
 import DoctorLayout from './components/Doctor/DoctorLayout';
 import DoctorDashboard from './pages/doctor/Dashboard';
 import NewPatientRecord from './pages/doctor/NewPatientRecord';
@@ -10,6 +11,7 @@ import Patients from './pages/doctor/Patients';
 import PatientDetail from './pages/doctor/PatientDetail';
 import DoctorPrescriptions from './pages/doctor/Prescriptions';
 import DoctorExaminations from './pages/doctor/Examinations';
+import Reports from './pages/doctor/Reports';
 import PatientLayout from './components/Patient/PatientLayout';
 import PatientHome from './pages/patient/Home';
 import Profile from './pages/patient/Profile';
@@ -24,6 +26,13 @@ import Telemedicine from './pages/patient/Telemedicine';
 import Reviews from './pages/patient/Reviews';
 import Articles from './pages/patient/Articles';
 import AdminPrescriptions from './pages/admin/Prescriptions';
+import AdminDoctors from './pages/admin/Doctors';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminPatients from './pages/admin/Patients';
+import AdminAppointments from './pages/admin/Appointments';
+import AdminExaminations from './pages/admin/Examinations';
+import AdminReports from './pages/admin/Reports';
+import AdminLayout from './components/Admin/AdminLayout';
 import StaffLayout from './components/Staff/StaffLayout';
 import StaffPrescriptions from './pages/staff/Prescriptions';
 import StaffAppointments from './pages/staff/Appointments';
@@ -49,6 +58,7 @@ function App() {
             <Route path="appointments" element={<DoctorAppointments />} />
             <Route path="prescriptions" element={<DoctorPrescriptions />} />
             <Route path="examinations" element={<DoctorExaminations />} />
+            <Route path="reports" element={<ProtectedRoute element={<Reports />} allowedRoles={['doctor', 'Admin']} />} />
           </Route>
 
           {/* Patient Routes */}
@@ -68,7 +78,16 @@ function App() {
           </Route>
 
           {/* Admin Routes */}
-          <Route path="/admin/prescriptions" element={<AdminPrescriptions />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="prescriptions" element={<AdminPrescriptions />} />
+            <Route path="doctors" element={<AdminDoctors />} />
+            <Route path="patients" element={<AdminPatients />} />
+            <Route path="appointments" element={<AdminAppointments />} />
+            <Route path="examinations" element={<AdminExaminations />} />
+            <Route path="reports" element={<AdminReports />} />
+          </Route>
 
           {/* Staff Routes */}
           <Route path="/staff" element={<StaffLayout />}>
