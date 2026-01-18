@@ -1,95 +1,418 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { connectDB } from './config/db.config.js';
+dotenv.config();
+
+import Report from './models/Report.js';
 import Appointment from './models/Appointment.js';
 import User from './models/User_Model.js';
 import DoctorProfile from './models/DoctorProfile.js';
 
-dotenv.config();
+const MONGODB_URI = process.env.MONGODB_URI;
 
-const seedReportData = async () => {
+async function seedReports() {
   try {
-    await connectDB();
+    await mongoose.connect(MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
     // Xóa dữ liệu cũ
-    await Appointment.deleteMany({});
-    console.log('🗑️  Cleared old appointments');
+    await Report.deleteMany({});
+    await Appointment.deleteMany({}); // Xóa appointments cũ để tạo mới
+    console.log('🗑️ Cleared old reports and appointments');
 
-    // Lấy doctor đầu tiên
-    const doctor = await User.findOne({ role: 'doctor' });
-    if (!doctor) {
-      console.log('❌ No doctor found in database');
-      process.exit(1);
+    // Lấy dữ liệu từ appointments và users để tạo báo cáo
+    let allAppointments = await Appointment.find({}).populate('patientId').populate('doctorProfileId');
+    const allDoctors = await DoctorProfile.find({}).populate('userId');
+    const allUsers = await User.find({});
+
+    console.log(`📋 Appointments found: ${allAppointments.length}`);
+
+    // Tạo dữ liệu appointments mẫu nếu chưa có hoặc quá ít
+    if (allAppointments.length < 20) {
+      console.log('📝 Creating sample appointments...');
+      
+      const sampleAppointments = [];
+      // Lọc ra chỉ bệnh nhân (loại bỏ admin, doctor, staff)
+      const patients = allUsers.filter(u => !u.role || u.role === 'patient').slice(0, 10);
+      const doctors = allDoctors.slice(0, 5);
+      const statuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+      const reasons = ['Khám tổng quát', 'Khám tim mạch', 'Khám ngoại', 'Tái khám', 'Kiểm tra sức khỏe'];
+      
+      if (patients.length === 0) {
+        console.log('⚠️ No patients found, using all users');
+        patients.push(...allUsers.slice(0, 10));
+      }
+      
+      for (let i = 0; i < 50; i++) {
+        const patient = patients[i % patients.length];
+        const doctor = doctors[i % doctors.length];
+        const status = statuses[i % statuses.length];
+        
+        // Tạo appointment trong 90 ngày gần đây với phân bố không đều
+        const daysAgo = Math.floor(Math.random() * 90);
+        const appointmentDate = new Date();
+        appointmentDate.setDate(appointmentDate.getDate() - daysAgo);
+        appointmentDate.setHours(Math.floor(Math.random() * 10) + 7, Math.floor(Math.random() * 60), 0);
+        
+        sampleAppointments.push({
+          patientId: patient._id,
+          doctorProfileId: doctor._id,
+          appointmentDate,
+          appointmentTime: `${String(appointmentDate.getHours()).padStart(2, '0')}:00`,
+          reason: reasons[Math.floor(Math.random() * reasons.length)],
+          status,
+          patientInfo: { 
+            name: patient.name || 'Patient', 
+            age: 30 + Math.floor(Math.random() * 40), 
+            phone: patient.phone || '0912345678', 
+            gender: Math.random() > 0.5 ? 'Nam' : 'Nữ' 
+          },
+          doctorInfo: { 
+            name: doctor.userId?.name || 'Doctor', 
+            specialty: doctor.specialty || 'Nội tổng quát' 
+          }
+        });
+      }
+      
+      await Appointment.insertMany(sampleAppointments);
+      allAppointments = await Appointment.find({}).populate('patientId').populate('doctorProfileId');
+      console.log(`✅ Created ${sampleAppointments.length} sample appointments with varied distribution`);
     }
-    console.log('👨‍⚕️ Found doctor:', doctor.name);
 
-    // Lấy bệnh nhân
-    const patients = await User.find({ role: 'patients' }).limit(10);
-    if (patients.length === 0) {
-      console.log('❌ No patients found in database');
-      process.exit(1);
-    }
-    console.log(`👥 Found ${patients.length} patients`);
-
-    // Tạo 20 appointments mẫu
-    const appointments = [];
+    // Tính toán dữ liệu cho báo cáo tháng này
     const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    for (let i = 0; i < 20; i++) {
-      const patient = patients[i % patients.length];
-      const daysAgo = Math.floor(Math.random() * 90); // Random 0-90 ngày trước
-      const appointmentDate = new Date(now);
-      appointmentDate.setDate(appointmentDate.getDate() - daysAgo);
+    const validAppointments = allAppointments.filter(apt => apt.patientId && apt.patientId._id);
+    const appointmentsThisMonth = validAppointments.filter(apt => {
+      const aptDate = new Date(apt.appointmentDate);
+      return aptDate >= monthStart && aptDate <= monthEnd;
+    });
 
-      const hour = Math.floor(Math.random() * 8) + 8; // 8-15 giờ
-      const minute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, 45 phút
+    // Thống kê bệnh nhân
+    const totalPatients = new Set(validAppointments.map(apt => apt.patientId._id.toString())).size;
+    const patientIdsThisMonth = new Set(appointmentsThisMonth.map(apt => apt.patientId._id.toString()));
+    const newPatients = patientIdsThisMonth.size;
 
-      const appointmentTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    // Thống kê cuộc hẹn
+    const completedAppointments = validAppointments.filter(apt => apt.status === 'completed').length;
+    const pendingAppointments = validAppointments.filter(apt => apt.status === 'pending').length;
+    const confirmedAppointments = validAppointments.filter(apt => apt.status === 'confirmed').length;
+    const cancelledAppointments = validAppointments.filter(apt => apt.status === 'cancelled').length;
+    const noShowAppointments = validAppointments.filter(apt => apt.status === 'no_show').length;
 
-      const statuses = ['completed', 'completed', 'completed', 'completed', 'pending', 'cancelled'];
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const completionRate = validAppointments.length > 0 
+      ? Math.round((completedAppointments / validAppointments.length) * 100) 
+      : 0;
 
-      appointments.push({
-        patientId: patient._id,
-        doctorProfileId: doctor._id,
-        appointmentDate: appointmentDate,
-        appointmentTime: appointmentTime,
-        reason: ['Khám sơ bộ', 'Tái khám', 'Kiểm tra sức khỏe định kỳ', 'Tư vấn'][Math.floor(Math.random() * 4)],
-        status: status,
-        doctorInfo: {
-          userId: doctor._id,
-          name: doctor.name,
-          specialty: 'Nội tổng quát'
-        },
-        patientInfo: {
-          name: patient.name,
-          email: patient.email,
-          phone: patient.phone,
-          age: Math.floor(Math.random() * 60) + 20
-        }
+    // Bệnh nhân quay lại
+    const patientsWithMultiple = validAppointments.reduce((acc, apt) => {
+      const pid = apt.patientId._id.toString();
+      acc[pid] = (acc[pid] || 0) + 1;
+      return acc;
+    }, {});
+    const returningPatients = Object.values(patientsWithMultiple).filter(count => count > 1).length;
+    const returningRate = totalPatients > 0 ? Math.round((returningPatients / totalPatients) * 100) : 0;
+
+    // Dữ liệu hàng tháng (12 tháng)
+    const monthlyData = [];
+    const monthNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+    
+    for (let i = 11; i >= 0; i--) {
+      const mStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+      const monthIndex = mStart.getMonth();
+      const mName = monthNames[monthIndex];
+
+      const mCount = validAppointments.filter(apt => {
+        const aptDate = new Date(apt.appointmentDate);
+        return aptDate >= mStart && aptDate <= mEnd;
+      }).length;
+
+      const mCompleted = validAppointments.filter(apt => {
+        const aptDate = new Date(apt.appointmentDate);
+        return aptDate >= mStart && aptDate <= mEnd && apt.status === 'completed';
+      }).length;
+
+      monthlyData.push({
+        month: mName,
+        appointmentCount: mCount,
+        completedCount: mCompleted,
+        newPatientsCount: Math.floor(Math.random() * (mCount / 2)) + 1,
+        cancelledCount: Math.floor(mCount * 0.1),
+        maxCapacity: 25
       });
     }
 
-    const createdAppointments = await Appointment.insertMany(appointments);
-    console.log(`✅ Created ${createdAppointments.length} appointments`);
+    // Thống kê bác sĩ
+    const doctorStats = [];
+    const peakHours = {};
+    const busyDaysCount = {};
 
-    // Hiển thị thống kê
-    const completed = appointments.filter(a => a.status === 'completed').length;
-    const cancelled = appointments.filter(a => a.status === 'cancelled').length;
-    const pending = appointments.filter(a => a.status === 'pending').length;
+    for (const doctor of allDoctors.slice(0, 5)) {
+      const doctorAppointments = validAppointments.filter(apt => 
+        apt.doctorProfileId && apt.doctorProfileId._id.toString() === doctor._id.toString()
+      );
+      
+      const doctorCompleted = doctorAppointments.filter(apt => apt.status === 'completed').length;
+      const doctorCompletionRate = doctorAppointments.length > 0 
+        ? Math.round((doctorCompleted / doctorAppointments.length) * 100) 
+        : 0;
 
-    console.log(`\n📊 Statistics:`);
-    console.log(`   - Completed: ${completed} (${Math.round(completed / appointments.length * 100)}%)`);
-    console.log(`   - Cancelled: ${cancelled} (${Math.round(cancelled / appointments.length * 100)}%)`);
-    console.log(`   - Pending: ${pending} (${Math.round(pending / appointments.length * 100)}%)`);
-    console.log(`   - Total Patients: ${new Set(appointments.map(a => a.patientId.toString())).size}`);
+      // Tính thời gian khám trung bình từ appointments
+      let totalDuration = 0;
+      doctorAppointments.forEach(apt => {
+        if (apt.appointmentTime) {
+          totalDuration += 30; // Giả định mỗi cuộc khám ~30 phút
+        }
+      });
+      const avgTime = doctorAppointments.length > 0 ? Math.round(totalDuration / doctorAppointments.length) : 30;
 
+      // Tính đánh giá từ completion rate
+      const doctorRating = (doctorCompletionRate / 100 * 5).toFixed(1);
+
+      doctorStats.push({
+        doctorId: doctor._id,
+        doctorName: doctor.userId?.name || 'N/A',
+        specialty: doctor.specialty || 'Nội tổng quát',
+        appointmentsHandled: doctorAppointments.length,
+        completionRate: doctorCompletionRate,
+        averageRating: parseFloat(doctorRating),
+        averageAppointmentTime: avgTime,
+        totalPatientsSeen: new Set(doctorAppointments.map(apt => apt.patientId._id.toString())).size
+      });
+
+      // Thống kê giờ cao điểm
+      doctorAppointments.forEach(apt => {
+        if (apt.appointmentTime) {
+          const hour = apt.appointmentTime.split(':')[0];
+          peakHours[hour] = (peakHours[hour] || 0) + 1;
+        }
+      });
+
+      // Thống kê ngày bận
+      doctorAppointments.forEach(apt => {
+        const day = new Date(apt.appointmentDate).toLocaleDateString('vi-VN', { weekday: 'long' });
+        busyDaysCount[day] = (busyDaysCount[day] || 0) + 1;
+      });
+    }
+
+    // Tính giờ cao điểm top 3
+    const peakAppointmentTimes = Object.entries(peakHours)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([hour]) => `${hour}:00`);
+
+    // Tính ngày bận top 3
+    const busyDays = Object.entries(busyDaysCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([day]) => day);
+
+    // Tính thời gian khám trung bình chung
+    const avgAppointmentTimeOverall = doctorStats.length > 0 
+      ? Math.round(doctorStats.reduce((sum, d) => sum + d.averageAppointmentTime, 0) / doctorStats.length)
+      : 30;
+
+    // Tính đánh giá trung bình từ completion rate
+    const averageRatingOverall = (completionRate / 100 * 5).toFixed(1);
+
+    // Tính thỏa mãn bệnh nhân dựa trên completion rate
+    const patientSatisfactionOverall = Math.round(completionRate * 0.9 + 10); // 90% dựa vào completion, +10 base
+
+    // Tính uptime dựa trên tỷ lệ không có lỗi (ước tính: completion + no issue = 99.5% base + adjustments)
+    const systemUptimeOverall = (99 + (completionRate / 100)).toFixed(1);
+
+    // Phân bố trạng thái
+    const totalAppointments = validAppointments.length;
+    const statusDistribution = [
+      {
+        status: 'Hoàn Thành',
+        count: completedAppointments,
+        percentage: totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0,
+        color: 'bg-green-500'
+      },
+      {
+        status: 'Đang Chờ',
+        count: pendingAppointments + confirmedAppointments,
+        percentage: totalAppointments > 0 ? Math.round(((pendingAppointments + confirmedAppointments) / totalAppointments) * 100) : 0,
+        color: 'bg-yellow-500'
+      },
+      {
+        status: 'Bị Hủy',
+        count: cancelledAppointments,
+        percentage: totalAppointments > 0 ? Math.round((cancelledAppointments / totalAppointments) * 100) : 0,
+        color: 'bg-red-500'
+      }
+    ];
+
+    // Phân tích
+    const recommendations = [
+      'Tăng cường tiếp thị để thu hút bệnh nhân mới',
+      'Cải thiện tỷ lệ hoàn thành cuộc hẹn',
+      'Tập trung vào các chuyên khoa có nhu cầu cao',
+      'Phát triển chương trình chăm sóc bệnh nhân tái khám',
+      'Đánh giá lại khả năng cung cấp dịch vụ của bệnh viện'
+    ];
+
+    // Tạo báo cáo
+    const report = new Report({
+      reportName: `Báo cáo tháng ${now.getMonth() + 1}/${now.getFullYear()}`,
+      reportPeriod: 'month',
+      startDate: monthStart,
+      endDate: monthEnd,
+      
+      statistics: {
+        totalPatients,
+        newPatients,
+        returningPatients,
+        returningRate
+      },
+
+      appointments: {
+        total: totalAppointments,
+        completed: completedAppointments,
+        pending: pendingAppointments,
+        confirmed: confirmedAppointments,
+        cancelled: cancelledAppointments,
+        noShow: noShowAppointments,
+        completionRate,
+        cancellationRate: totalAppointments > 0 ? Math.round((cancelledAppointments / totalAppointments) * 100) : 0
+      },
+
+      examinations: {
+        total: validAppointments.length,
+        byDoctor: doctorStats,
+        bySpecialty: [
+          { specialty: 'Nội tổng quát', count: Math.ceil(validAppointments.length * 0.25), percentage: 25 },
+          { specialty: 'Ngoại', count: Math.ceil(validAppointments.length * 0.2), percentage: 20 },
+          { specialty: 'Tim mạch', count: Math.ceil(validAppointments.length * 0.15), percentage: 15 },
+          { specialty: 'Hô hấp', count: Math.ceil(validAppointments.length * 0.15), percentage: 15 },
+          { specialty: 'Khác', count: Math.ceil(validAppointments.length * 0.25), percentage: 25 }
+        ]
+      },
+
+      doctors: {
+        totalDoctors: allDoctors.length,
+        activeDoctors: Math.ceil(allDoctors.length * 0.8),
+        topPerformers: doctorStats.sort((a, b) => b.appointmentsHandled - a.appointmentsHandled).slice(0, 5)
+      },
+
+      monthlyData,
+
+      statusDistribution,
+
+      performance: {
+        avgAppointmentTime: avgAppointmentTimeOverall,
+        averageRating: parseFloat(averageRatingOverall),
+        patientSatisfaction: patientSatisfactionOverall,
+        systemUptime: parseFloat(systemUptimeOverall)
+      },
+
+      analysis: {
+        peakAppointmentTimes: peakAppointmentTimes.length > 0 ? peakAppointmentTimes : ['09:00', '14:00', '15:30'],
+        busyDays: busyDays.length > 0 ? busyDays : ['Thứ 2', 'Thứ 3', 'Thứ 4'],
+        specialtyDemand: [
+          { specialty: 'Nội tổng quát', demand: 'Cao', percentage: 28 },
+          { specialty: 'Tim mạch', demand: 'Trung bình', percentage: 18 },
+          { specialty: 'Ngoại', demand: 'Trung bình', percentage: 22 }
+        ],
+        recommendations
+      },
+
+      isActive: true,
+      notes: 'Báo cáo tự động sinh tháng này'
+    });
+
+    await report.save();
+    console.log('✅ Seed report created successfully');
+
+    // Tạo thêm báo cáo cho các tháng trước
+    for (let m = 1; m <= 3; m++) {
+      const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - m, 1);
+      const prevMonthEnd = new Date(now.getFullYear(), now.getMonth() - m + 1, 0);
+      const prevMonthName = prevMonthStart.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
+
+      const prevReport = new Report({
+        reportName: `Báo cáo ${prevMonthName}`,
+        reportPeriod: 'month',
+        startDate: prevMonthStart,
+        endDate: prevMonthEnd,
+        
+        statistics: {
+          totalPatients: totalPatients + Math.floor(Math.random() * 10),
+          newPatients: Math.floor(Math.random() * 5) + 2,
+          returningPatients: Math.floor(totalPatients * 0.6),
+          returningRate: Math.floor(Math.random() * 20) + 50
+        },
+
+        appointments: {
+          total: Math.floor(totalAppointments * (0.8 + Math.random() * 0.4)),
+          completed: Math.floor(completedAppointments * (0.8 + Math.random() * 0.4)),
+          pending: Math.floor(pendingAppointments * 0.8),
+          confirmed: Math.floor(confirmedAppointments * 0.8),
+          cancelled: Math.floor(cancelledAppointments * (0.7 + Math.random() * 0.5)),
+          noShow: Math.floor(noShowAppointments * 0.9),
+          completionRate: completionRate - Math.floor(Math.random() * 5),
+          cancellationRate: Math.floor(Math.random() * 10) + 5
+        },
+
+        examinations: {
+          total: Math.floor(validAppointments.length * 0.85),
+          byDoctor: doctorStats.map(d => ({...d, appointmentsHandled: Math.floor(d.appointmentsHandled * 0.85)})),
+          bySpecialty: [
+            { specialty: 'Nội tổng quát', count: 15, percentage: 25 },
+            { specialty: 'Ngoại', count: 12, percentage: 20 },
+            { specialty: 'Tim mạch', count: 9, percentage: 15 },
+            { specialty: 'Hô hấp', count: 9, percentage: 15 },
+            { specialty: 'Khác', count: 15, percentage: 25 }
+          ]
+        },
+
+        doctors: {
+          totalDoctors: allDoctors.length,
+          activeDoctors: Math.ceil(allDoctors.length * 0.75),
+          topPerformers: doctorStats.slice(0, 3)
+        },
+
+        monthlyData: monthlyData.map(m => ({
+          ...m,
+          appointmentCount: Math.floor(m.appointmentCount * 0.9)
+        })),
+
+        statusDistribution,
+
+        performance: {
+          avgAppointmentTime: avgAppointmentTimeOverall,
+          averageRating: parseFloat(averageRatingOverall),
+          patientSatisfaction: patientSatisfactionOverall,
+          systemUptime: parseFloat(systemUptimeOverall)
+        },
+
+        analysis: {
+          peakAppointmentTimes: peakAppointmentTimes.length > 0 ? peakAppointmentTimes : ['10:00', '14:00'],
+          busyDays: busyDays.length > 0 ? busyDays : ['Thứ 2', 'Thứ 3'],
+          specialtyDemand: [
+            { specialty: 'Nội tổng quát', demand: 'Cao', percentage: 28 },
+            { specialty: 'Tim mạch', demand: 'Trung bình', percentage: 18 }
+          ],
+          recommendations
+        },
+
+        isActive: true
+      });
+
+      await prevReport.save();
+      console.log(`✅ Previous month report ${m} created`);
+    }
+
+    console.log('✅ All reports seeded successfully');
     process.exit(0);
+
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('❌ Error seeding reports:', error);
     process.exit(1);
   }
-};
+}
 
-seedReportData();
+seedReports();

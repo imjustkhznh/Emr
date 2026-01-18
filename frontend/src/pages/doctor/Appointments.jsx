@@ -59,8 +59,10 @@ const Appointments = () => {
         
         // Fetch appointments
         const appointmentsRes = await appointmentAPI.getAll();
+        console.log('📋 Appointments response:', appointmentsRes.data);
         if (appointmentsRes.data && appointmentsRes.data.data) {
           setAppointments(appointmentsRes.data.data);
+          console.log('✅ Set appointments:', appointmentsRes.data.data);
         }
 
         // Fetch patients list
@@ -321,7 +323,7 @@ const Appointments = () => {
                                 {statusLabels[a.status] || a.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{a.doctorInfo?.name || 'N/A'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{a.doctorInfo?.name || a.doctorProfileId?.name || 'N/A'}</td>
                             <td className="px-6 py-4 text-xs text-gray-600">{createdStr}</td>
                             <td className="px-6 py-4 text-center">
                               <div className="flex gap-2 justify-center">

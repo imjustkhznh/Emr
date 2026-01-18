@@ -48,7 +48,21 @@ export const createExamination = async (req, res) => {
 
 export const getExaminations = async (req, res) => {
   try {
-    const examinations = await Examination.find().sort({ examinationDate: -1 });
+    let query = {};
+    
+    console.log('🔍 User role:', req.user?.role);
+    // Admin xem tất cả, Doctor chỉ xem phiếu khám của mình
+    if (req.user?.role !== 'Admin' && req.user?.role !== 'admin') {
+      query.doctorId = req.user?._id;
+      console.log('👨‍⚕️ Doctor filter - doctorId:', req.user?._id);
+    } else {
+      console.log('👨‍💼 Admin - xem tất cả');
+    }
+    
+    console.log('📋 Query:', query);
+    const examinations = await Examination.find(query).sort({ examinationDate: -1 });
+    console.log('📊 Found examinations:', examinations.length);
+    
     return res.status(200).json({
       message: 'Lấy danh sách phiếu khám thành công',
       data: examinations

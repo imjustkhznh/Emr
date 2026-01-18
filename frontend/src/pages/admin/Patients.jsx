@@ -86,10 +86,10 @@ const AdminPatients = () => {
               <thead className="bg-gray-100">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Tên</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Điện thoại</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Ngày sinh</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Tuổi</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Giới tính</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Điện thoại</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Trạng thái</th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase">Hành động</th>
                 </tr>
               </thead>
@@ -97,12 +97,10 @@ const AdminPatients = () => {
                 {filteredPatients.map((patient) => (
                   <tr key={patient._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">{patient.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{patient.email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{patient.phone || 'N/A'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString('vi-VN') : 'N/A'}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{patient.age || 'N/A'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{patient.gender || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{patient.phone || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{patient.status || 'N/A'}</td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button className="p-2 hover:bg-blue-100 rounded-lg text-blue-600 transition">

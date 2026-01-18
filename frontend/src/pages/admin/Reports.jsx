@@ -122,25 +122,30 @@ const AdminReports = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Biểu đồ cuộc hẹn hàng tháng */}
             <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <BarChart3 className="h-6 w-6 text-blue-600" />
                 Cuộc Hẹn Hàng Tháng
               </h2>
-              <div className="space-y-3">
-                {reportData.monthlyData && reportData.monthlyData.map((item, idx) => (
-                  <div key={`month-${idx}`}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-700 font-medium">{item.month}</span>
-                      <span className="text-gray-600">{item.value} cuộc</span>
+              <div className="space-y-4">
+                {reportData.monthlyData && reportData.monthlyData.map((item, idx) => {
+                  const percentage = (item.value / (item.max || 25)) * 100;
+                  return (
+                    <div key={`month-${idx}`} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-semibold text-gray-800 min-w-12">{item.month}</span>
+                        <span className="text-sm font-bold text-blue-600">{item.value} cuộc</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-lg h-8 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-blue-400 to-blue-600 h-8 rounded-lg flex items-center justify-end pr-3 transition-all duration-500"
+                          style={{ width: `${Math.max(percentage, 5)}%` }}
+                        >
+                          {percentage > 15 && <span className="text-xs font-bold text-white">{Math.round(percentage)}%</span>}
+                        </div>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{ width: `${(item.value / (item.max || 25)) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

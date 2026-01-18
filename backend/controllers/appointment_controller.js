@@ -1,10 +1,35 @@
 import Appointment from '../models/Appointment.js';
 
+// Helper function để map status
+const mapStatus = (status) => {
+  const statusMap = {
+    'pending': 'Chờ xác nhận',
+    'confirmed': 'Đã xác nhận',
+    'completed': 'Hoàn thành',
+    'cancelled': 'Hủy',
+    'no_show': 'Không đến',
+    'in_progress': 'Đang khám'
+  };
+  return statusMap[status] || status;
+};
+
 // Lấy danh sách tất cả lịch hẹn
 export const getAppointments = async (req, res) => {
   try {
-    // Populate patientInfo with age for each appointment
-    const appointments = await Appointment.find().sort({ appointmentDate: 1, appointmentTime: 1 });
+    console.log('📋 getAppointments called!');
+    // Populate doctorProfileId để lấy tên bác sĩ thực tế
+    const appointments = await Appointment.find()
+      .populate({
+        path: 'doctorProfileId',
+        select: 'name email phone specialty'
+      })
+      .sort({ appointmentDate: 1, appointmentTime: 1 });
+    
+    console.log('✅ Found appointments:', appointments.length);
+    if (appointments.length > 0) {
+      console.log('🔍 First doctorProfileId:', appointments[0].doctorProfileId);
+    }
+    
     const populatedAppointments = await Promise.all(
       appointments.map(async (appt) => {
         let patientInfo = appt.patientInfo || {};
@@ -25,11 +50,28 @@ export const getAppointments = async (req, res) => {
             patientInfo.dateOfBirth = user.dateOfBirth;
           }
         }
-        return { ...appt.toObject(), patientInfo };
+        
+        // Ghi đè doctorInfo bằng tên từ DoctorProfile nếu có
+        const result = appt.toObject();
+        if (appt.doctorProfileId && appt.doctorProfileId.name) {
+          result.doctorInfo = {
+            name: appt.doctorProfileId.name,
+            email: appt.doctorProfileId.email,
+            phone: appt.doctorProfileId.phone,
+            specialty: appt.doctorProfileId.specialty
+          };
+          console.log('✅ Set doctorInfo from doctorProfileId:', result.doctorInfo.name);
+        }
+        result.patientInfo = patientInfo;
+        result.statusDisplay = mapStatus(result.status); // Thêm status display
+        
+        return result;
       })
     );
+    
     res.status(200).json({ message: 'Lấy danh sách lịch hẹn thành công', data: populatedAppointments });
   } catch (err) {
+    console.error('❌ Error in getAppointments:', err);
     res.status(500).json({ message: 'Lỗi server', error: err.message });
   }
 };

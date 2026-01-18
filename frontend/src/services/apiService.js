@@ -13,37 +13,71 @@ const getAuthHeader = () => {
   };
 };
 
+// Create axios instance với interceptor
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// Request interceptor - thêm token vào mỗi request
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Response interceptor - xử lý token hết hạn
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && error.response?.data?.code === 'TOKEN_EXPIRED') {
+      // Token hết hạn - redirect đến login
+      console.warn('⚠️ Token expired, redirecting to login');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('currentUser');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Examinations API
 export const examinationAPI = {
-  getAll: () => axios.get(`${API_BASE_URL}/examinations`, getAuthHeader()),
-  getById: (id) => axios.get(`${API_BASE_URL}/examinations/${id}`, getAuthHeader()),
-  create: (data) => axios.post(`${API_BASE_URL}/examinations`, data, getAuthHeader()),
-  update: (id, data) => axios.put(`${API_BASE_URL}/examinations/${id}`, data, getAuthHeader()),
-  delete: (id) => axios.delete(`${API_BASE_URL}/examinations/${id}`, getAuthHeader()),
+  getAll: () => apiClient.get('/examinations'),
+  getById: (id) => apiClient.get(`/examinations/${id}`),
+  create: (data) => apiClient.post('/examinations', data),
+  update: (id, data) => apiClient.put(`/examinations/${id}`, data),
+  delete: (id) => apiClient.delete(`/examinations/${id}`),
 };
 
 // Appointments API
 export const appointmentAPI = {
-  getAll: () => axios.get(`${API_BASE_URL}/appointments`, getAuthHeader()),
-  create: (data) => axios.post(`${API_BASE_URL}/appointments`, data, getAuthHeader()),
-  update: (id, data) => axios.put(`${API_BASE_URL}/appointments/${id}`, data, getAuthHeader()),
-  delete: (id) => axios.delete(`${API_BASE_URL}/appointments/${id}`, getAuthHeader()),
+  getAll: () => apiClient.get('/appointments'),
+  create: (data) => apiClient.post('/appointments', data),
+  update: (id, data) => apiClient.put(`/appointments/${id}`, data),
+  delete: (id) => apiClient.delete(`/appointments/${id}`),
 };
 
 // Medical Records API
 export const medicalAPI = {
-  getAll: () => axios.get(`${API_BASE_URL}/medical/records`, getAuthHeader()),
-  getById: (id) => axios.get(`${API_BASE_URL}/medical/records/${id}`, getAuthHeader()),
-  create: (data) => axios.post(`${API_BASE_URL}/medical/records`, data, getAuthHeader()),
-  update: (id, data) => axios.put(`${API_BASE_URL}/medical/records/${id}`, data, getAuthHeader()),
-  delete: (id) => axios.delete(`${API_BASE_URL}/medical/records/${id}`, getAuthHeader()),
+  getAll: () => apiClient.get('/medical/records'),
+  getById: (id) => apiClient.get(`/medical/records/${id}`),
+  create: (data) => apiClient.post('/medical/records', data),
+  update: (id, data) => apiClient.put(`/medical/records/${id}`, data),
+  delete: (id) => apiClient.delete(`/medical/records/${id}`),
 };
 
 // Users API
 export const userAPI = {
-  getAll: () => axios.get(`${API_BASE_URL}/user`, getAuthHeader()),
-  getById: (id) => axios.get(`${API_BASE_URL}/user/${id}`, getAuthHeader()),
-  update: (id, data) => axios.put(`${API_BASE_URL}/user/${id}`, data, getAuthHeader()),
+  getAll: () => apiClient.get('/user'),
+  getById: (id) => apiClient.get(`/user/${id}`),
+  update: (id, data) => apiClient.put(`/user/${id}`, data),
 };
 
 export default {
