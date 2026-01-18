@@ -4,11 +4,11 @@ import {
   LayoutDashboard, 
   Users, 
   Stethoscope, 
-  Calendar, 
-  Pill,
+  Calendar,
   LogOut,
   Heart,
-  BarChart3
+  BarChart3,
+  DollarSign
 } from 'lucide-react';
 import { userAPI } from '../../services/api';
 import { toast } from 'react-toastify';
@@ -63,7 +63,7 @@ const AdminLayout = () => {
     },
     { 
       name: 'Khám Bệnh', 
-      icon: <Stethoscope className="h-5 w-5" />, 
+      icon: <Heart className="h-5 w-5" />, 
       path: '/admin/examinations' 
     },
     { 
@@ -72,9 +72,14 @@ const AdminLayout = () => {
       path: '/admin/reports' 
     },
     { 
-      name: 'Đơn Thuốc', 
-      icon: <Pill className="h-5 w-5" />, 
-      path: '/admin/prescriptions' 
+      name: 'Hóa Đơn & Thanh Toán', 
+      icon: <DollarSign className="h-5 w-5" />, 
+      path: '/admin/invoices' 
+    },
+    { 
+      name: 'Quản Lý Người Dùng', 
+      icon: <Users className="h-5 w-5" />, 
+      path: '/admin/users' 
     },
   ];
 
@@ -104,13 +109,16 @@ const AdminLayout = () => {
           </div>
 
           {/* User Info */}
-          <div className="flex items-center gap-3 px-4 py-4 border-b border-[#334155]">
-            <div className="flex items-center justify-center bg-gradient-to-br from-red-500 to-pink-600 text-white rounded-full h-10 w-10 font-bold">
+          <div className="flex items-center gap-3 px-4 py-5 border-b border-[#334155] bg-gradient-to-r from-[#334155]/50 to-transparent hover:from-[#475569]/50 transition-all">
+            <div className="flex items-center justify-center bg-gradient-to-br from-rose-500 via-pink-500 to-red-600 text-white rounded-full h-12 w-12 font-bold text-sm shadow-lg ring-2 ring-pink-400/30">
               {loading ? '...' : initials}
             </div>
-            <div>
-              <p className="text-sm font-medium text-[#F1F5F9]">{displayName}</p>
-              <p className="text-xs text-[#64748B]">Quản Trị Viên</p>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[#F1F5F9] tracking-wide">{displayName}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                <p className="text-xs font-medium text-green-400">Quản Trị Viên</p>
+              </div>
             </div>
           </div>
 

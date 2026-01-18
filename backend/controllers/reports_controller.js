@@ -33,7 +33,11 @@ export const getDoctorReports = async (req, res) => {
           noShowAppointments: report.appointments.noShow,
           appointmentsThisMonth: report.appointments.total,
           pendingAppointments: report.appointments.pending + report.appointments.confirmed,
-          monthlyData: report.monthlyData,
+          monthlyData: report.monthlyData.map(m => ({
+            month: m.month,
+            value: m.appointmentCount || 0,
+            max: m.maxCapacity || 25
+          })),
           statusDistribution: report.statusDistribution,
           newPatientsThisMonth: report.statistics.newPatients,
           returningPatients: report.statistics.returningPatients,

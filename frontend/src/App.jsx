@@ -33,6 +33,14 @@ import AdminAppointments from './pages/admin/Appointments';
 import AdminExaminations from './pages/admin/Examinations';
 import AdminReports from './pages/admin/Reports';
 import AdminLayout from './components/Admin/AdminLayout';
+import AdminSettings from './pages/admin/Settings';
+import UsersManagement from './pages/admin/Users';
+import AdminReviews from './pages/admin/Reviews';
+import Invoices from './pages/admin/Invoices';
+import Departments from './pages/admin/Departments';
+import Specialties from './pages/admin/Specialties';
+import MedicalRecords from './pages/admin/MedicalRecords';
+import DoctorSchedules from './pages/admin/Schedules';
 import StaffLayout from './components/Staff/StaffLayout';
 import StaffPrescriptions from './pages/staff/Prescriptions';
 import StaffAppointments from './pages/staff/Appointments';
@@ -87,6 +95,14 @@ function App() {
             <Route path="appointments" element={<AdminAppointments />} />
             <Route path="examinations" element={<AdminExaminations />} />
             <Route path="reports" element={<AdminReports />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="users" element={<UsersManagement />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="invoices" element={<Invoices />} />
+            <Route path="departments" element={<Departments />} />
+            <Route path="specialties" element={<Specialties />} />
+            <Route path="medical-records" element={<MedicalRecords />} />
+            <Route path="schedules" element={<DoctorSchedules />} />
           </Route>
 
           {/* Staff Routes */}

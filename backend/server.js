@@ -10,6 +10,10 @@ import router_examination from './routes/examination-router.js';
 import router_reports from './routes/reports-router.js';
 import router_doctors from './routes/doctor-router.js';
 import router_doctor_list from './routes/doctor_list_router.js';
+import router_departments from './routes/department-router.js';
+import router_invoices from './routes/invoice-router.js';
+import router_schedules from './routes/schedule-router.js';
+import router_specialties from './routes/specialty-router.js';
 import cookieParser from 'cookie-parser';
 dotenv.config();
 const app = expess();
@@ -36,6 +40,10 @@ app.use('/api/examinations', router_examination);
 app.use('/api/reports', router_reports);
 app.use('/api/doctors', router_doctors);
 app.use('/api/doctor-list', router_doctor_list);
+app.use('/api/departments', router_departments);
+app.use('/api/invoices', router_invoices);
+app.use('/api/schedules', router_schedules);
+app.use('/api/specialties', router_specialties);
 
 
 

@@ -5,12 +5,16 @@ export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-hashpassword');
     return res.status(200).json({
+      success: true,
       message: 'Lấy danh sách người dùng thành công',
       data: users
     });
   } catch (error) {
     console.error('Lỗi lấy danh sách người dùng:', error);
-    return res.status(500).json({ message: 'Lỗi máy chủ, vui lòng thử lại sau' });
+    return res.status(500).json({ 
+      success: false,
+      message: 'Lỗi máy chủ, vui lòng thử lại sau' 
+    });
   }
 };
 
@@ -49,5 +53,74 @@ export const updateUserProfile = async (req, res) => {
   } catch (error) {
     console.error('Lỗi cập nhật hồ sơ:', error);
     return res.status(500).json({ message: 'Lỗi máy chủ, vui lòng thử lại sau' });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { name, email, phone, role, password } = req.body;
+    const userId = req.params.id;
+
+    const updateData = {
+      name,
+      email,
+      phone,
+      role
+    };
+
+    if (password) {
+      updateData.hashpassword = password;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-hashpassword');
+
+    if (!updatedUser) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Người dùng không tồn tại' 
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Cập nhật người dùng thành công',
+      data: updatedUser
+    });
+  } catch (error) {
+    console.error('Lỗi cập nhật người dùng:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Lỗi máy chủ, vui lòng thử lại sau' 
+    });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Người dùng không tồn tại' 
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Xóa người dùng thành công'
+    });
+  } catch (error) {
+    console.error('Lỗi xóa người dùng:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Lỗi máy chủ, vui lòng thử lại sau' 
+    });
   }
 };

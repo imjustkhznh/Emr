@@ -407,6 +407,181 @@ async function seedReports() {
     }
 
     console.log('✅ All reports seeded successfully');
+
+    // Tạo báo cáo cho tuần này (week)
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - 7);
+    
+    const weekReport = new Report({
+      reportName: `Báo cáo tuần này`,
+      reportPeriod: 'week',
+      startDate: weekStart,
+      endDate: now,
+      statistics: {
+        totalPatients: Math.floor(totalPatients * 0.3),
+        newPatients: Math.floor(newPatients * 0.2),
+        returningPatients: Math.floor(returningPatients * 0.25),
+        returningRate: Math.floor(Math.random() * 20) + 60
+      },
+      appointments: {
+        total: Math.floor(totalAppointments * 0.2),
+        completed: Math.floor(completedAppointments * 0.22),
+        pending: Math.floor(pendingAppointments * 0.15),
+        confirmed: Math.floor(confirmedAppointments * 0.2),
+        cancelled: Math.floor(cancelledAppointments * 0.18),
+        noShow: Math.floor(noShowAppointments * 0.1),
+        completionRate: Math.round(Math.random() * 30) + 65,
+        cancellationRate: Math.round(Math.random() * 15)
+      },
+      monthlyData: monthlyData.map(m => ({
+        month: m.month,
+        appointmentCount: Math.floor(m.appointmentCount * 0.15),
+        completedCount: Math.floor(m.completedCount * 0.17),
+        newPatientsCount: Math.floor(Math.random() * 2),
+        cancelledCount: Math.floor(Math.random() * 1),
+        maxCapacity: 5
+      })),
+      statusDistribution: [
+        { status: 'Hoàn Thành', count: Math.floor(totalAppointments * 0.2 * 0.7), percentage: 70 },
+        { status: 'Đang Chờ', count: Math.floor(totalAppointments * 0.2 * 0.2), percentage: 20 },
+        { status: 'Bỏ Hẹn', count: Math.floor(totalAppointments * 0.2 * 0.1), percentage: 10 }
+      ],
+      performance: {
+        avgAppointmentTime: 30,
+        averageRating: 4.2
+      },
+      doctors: {
+        totalDoctors: allDoctors.length,
+        activeDoctors: Math.floor(allDoctors.length * 0.8),
+        topPerformers: []
+      },
+      analysis: {
+        specialtyDemand: [],
+        peakAppointmentTimes: [],
+        busyDays: [],
+        recommendations: recommendations
+      },
+      isActive: true
+    });
+    await weekReport.save();
+    console.log('✅ Week report created');
+
+    // Tạo báo cáo cho quý này (quarter)
+    const quarterStart = new Date(now);
+    quarterStart.setMonth(now.getMonth() - 3);
+    
+    const quarterReport = new Report({
+      reportName: `Báo cáo quý này`,
+      reportPeriod: 'quarter',
+      startDate: quarterStart,
+      endDate: now,
+      statistics: {
+        totalPatients: Math.floor(totalPatients * 0.8),
+        newPatients: Math.floor(newPatients * 0.7),
+        returningPatients: Math.floor(returningPatients * 0.75),
+        returningRate: Math.floor(Math.random() * 20) + 55
+      },
+      appointments: {
+        total: Math.floor(totalAppointments * 0.7),
+        completed: Math.floor(completedAppointments * 0.72),
+        pending: Math.floor(pendingAppointments * 0.65),
+        confirmed: Math.floor(confirmedAppointments * 0.7),
+        cancelled: Math.floor(cancelledAppointments * 0.68),
+        noShow: Math.floor(noShowAppointments * 0.7),
+        completionRate: Math.round(Math.random() * 25) + 70,
+        cancellationRate: Math.round(Math.random() * 12)
+      },
+      monthlyData: monthlyData.map(m => ({
+        month: m.month,
+        appointmentCount: Math.floor(m.appointmentCount * 0.7),
+        completedCount: Math.floor(m.completedCount * 0.72),
+        newPatientsCount: Math.floor(Math.random() * 8),
+        cancelledCount: Math.floor(Math.random() * 3),
+        maxCapacity: 20
+      })),
+      statusDistribution: [
+        { status: 'Hoàn Thành', count: Math.floor(totalAppointments * 0.7 * 0.72), percentage: 72 },
+        { status: 'Đang Chờ', count: Math.floor(totalAppointments * 0.7 * 0.18), percentage: 18 },
+        { status: 'Bỏ Hẹn', count: Math.floor(totalAppointments * 0.7 * 0.1), percentage: 10 }
+      ],
+      performance: {
+        avgAppointmentTime: 32,
+        averageRating: 4.3
+      },
+      doctors: {
+        totalDoctors: allDoctors.length,
+        activeDoctors: Math.floor(allDoctors.length * 0.85),
+        topPerformers: []
+      },
+      analysis: {
+        specialtyDemand: [],
+        peakAppointmentTimes: [],
+        busyDays: [],
+        recommendations: recommendations
+      },
+      isActive: true
+    });
+    await quarterReport.save();
+    console.log('✅ Quarter report created');
+
+    // Tạo báo cáo cho năm này (year)
+    const yearStart = new Date(now);
+    yearStart.setFullYear(now.getFullYear() - 1);
+    
+    const yearReport = new Report({
+      reportName: `Báo cáo năm này`,
+      reportPeriod: 'year',
+      startDate: yearStart,
+      endDate: now,
+      statistics: {
+        totalPatients: Math.floor(totalPatients * 1.2),
+        newPatients: Math.floor(newPatients * 1.3),
+        returningPatients: Math.floor(returningPatients * 1.15),
+        returningRate: Math.floor(Math.random() * 20) + 50
+      },
+      appointments: {
+        total: Math.floor(totalAppointments * 1.1),
+        completed: Math.floor(completedAppointments * 1.12),
+        pending: Math.floor(pendingAppointments * 1.0),
+        confirmed: Math.floor(confirmedAppointments * 1.1),
+        cancelled: Math.floor(cancelledAppointments * 1.05),
+        noShow: Math.floor(noShowAppointments * 1.1),
+        completionRate: Math.round(Math.random() * 20) + 75,
+        cancellationRate: Math.round(Math.random() * 10)
+      },
+      monthlyData: monthlyData.map(m => ({
+        month: m.month,
+        appointmentCount: Math.floor(m.appointmentCount * 1.1),
+        completedCount: Math.floor(m.completedCount * 1.12),
+        newPatientsCount: Math.floor(Math.random() * 20),
+        cancelledCount: Math.floor(Math.random() * 5),
+        maxCapacity: 30
+      })),
+      statusDistribution: [
+        { status: 'Hoàn Thành', count: Math.floor(totalAppointments * 1.1 * 0.75), percentage: 75 },
+        { status: 'Đang Chờ', count: Math.floor(totalAppointments * 1.1 * 0.15), percentage: 15 },
+        { status: 'Bỏ Hẹn', count: Math.floor(totalAppointments * 1.1 * 0.1), percentage: 10 }
+      ],
+      performance: {
+        avgAppointmentTime: 31,
+        averageRating: 4.4
+      },
+      doctors: {
+        totalDoctors: allDoctors.length,
+        activeDoctors: Math.floor(allDoctors.length * 0.9),
+        topPerformers: []
+      },
+      analysis: {
+        specialtyDemand: [],
+        peakAppointmentTimes: [],
+        busyDays: [],
+        recommendations: recommendations
+      },
+      isActive: true
+    });
+    await yearReport.save();
+    console.log('✅ Year report created');
+
     process.exit(0);
 
   } catch (error) {
