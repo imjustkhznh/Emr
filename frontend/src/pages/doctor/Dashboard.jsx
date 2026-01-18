@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Users, Calendar, FileText, Stethoscope, AlertCircle, CheckCircle, TrendingUp, Clock } from 'lucide-react';
-import { userAPI, appointmentAPI, patientsAPI } from '../../services/api';
+import { userAPI, appointmentAPI, examinationAPI, medicalAPI } from '../../services/apiService';
 import { toast } from 'react-toastify';
 
 const DoctorDashboard = () => {
@@ -17,24 +17,22 @@ const DoctorDashboard = () => {
       try {
         setLoading(true);
         
-        // Fetch appointments
-        const appointmentsRes = await appointmentAPI.getAppointments();
-        const appointmentsData = appointmentsRes?.data || appointmentsRes?.appointments || [];
-        console.log('Appointments response:', appointmentsData);
+        // Fetch appointments, exams, patients, and prescriptions
+        const [appointmentsRes, examsRes, patientsRes, prescriptionsRes] = await Promise.all([
+          appointmentAPI.getAll(),
+          examinationAPI.getAll(),
+          userAPI.getAll(),
+          medicalAPI.getAll()
+        ]);
+        
+        const appointmentsData = appointmentsRes?.data?.data || [];
+        const examsData = examsRes?.data?.data || [];
+        const patientsData = patientsRes?.data?.data?.filter(u => u.role === 'patients') || [];
+        const prescriptionsData = prescriptionsRes?.data?.data || [];
+        
         setAppointments(appointmentsData);
-
-        // Fetch patients
-        const patientsRes = await patientsAPI.getPatients();
-        console.log('Patients response:', patientsRes);
-        const patientsData = patientsRes?.data || patientsRes?.patients || [];
         setPatients(patientsData);
-
-        // Fetch user profile
-        try {
-          const profileRes = await userAPI.getProfile();
-        } catch (err) {
-          console.log('Profile fetch optional');
-        }
+        setPrescriptions(prescriptionsData);
         
         // Calculate stats
         const today = new Date();
@@ -42,21 +40,19 @@ const DoctorDashboard = () => {
           try {
             const dateObj = a.appointmentDate ? new Date(a.appointmentDate) : null;
             if (!dateObj || isNaN(dateObj)) return false;
-            // So sánh lớn hơn hoặc bằng hôm nay (bỏ phần giờ phút giây)
             return dateObj >= new Date(today.getFullYear(), today.getMonth(), today.getDate());
           } catch (e) {
             return false;
           }
         });
         
-        // Count unique patients from patients collection
-        const uniquePatients = new Set(patientsData.map(m => m._id || m.patientId || m.patientName).filter(Boolean));
-        
         setStats({
-          totalPatients: uniquePatients.size || patientsData.length || 0,
+          totalPatients: patientsData.length,
           todayAppointments: upcomingAppointments.length,
           pendingAppointments: appointmentsData.filter(a => a.status === 'pending').length,
-          prescriptionsCount: 0,
+          prescriptionsCount: prescriptionsData.length,
+          completedExams: examsData.filter(e => e.status === 'completed').length,
+          pendingExams: examsData.filter(e => e.status === 'pending').length,
         });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -65,6 +61,8 @@ const DoctorDashboard = () => {
           todayAppointments: 0,
           pendingAppointments: 0,
           prescriptionsCount: 0,
+          completedExams: 0,
+          pendingExams: 0,
         });
       } finally {
         setLoading(false);

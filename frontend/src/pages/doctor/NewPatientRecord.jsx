@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { patientsAPI } from '../../services/api';
+import { medicalAPI } from '../../services/apiService';
 import { toast } from 'react-toastify';
 
 const initialState = {
@@ -27,7 +27,7 @@ const NewPatientRecord = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await patientsAPI.createPatient(form);
+      await medicalAPI.create(form);
       toast.success('Tạo hồ sơ bệnh nhân thành công!');
       navigate(-1);
     } catch (error) {

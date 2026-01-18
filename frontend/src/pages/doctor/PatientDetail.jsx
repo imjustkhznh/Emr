@@ -1,38 +1,39 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../services/api';
+import { userAPI, medicalAPI } from '../../services/apiService';
 
 const PatientDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [patient, setPatient] = useState(null);
+  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Kiểm tra quyền truy cập
-    let user = null;
-    try {
-      user = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('currentUser')) || JSON.parse(localStorage.getItem('profile'));
-    } catch (e) {}
-    // Lấy role từ nhiều cấu trúc khác nhau
-    const role = (user?.role || user?.data?.role || user?.user?.role || '').toLowerCase();
-    if (!role || !['doctor', 'admin'].includes(role)) {
-      setError(`Bạn không có quyền xem thông tin bệnh nhân này. (role: ${role || 'không xác định'})`);
-      setLoading(false);
-      setTimeout(() => navigate('/doctor/patients'), 2000);
-      return;
-    }
-    // Lấy thông tin bệnh nhân
-    api.get(`/medical/records/${id}`)
-      .then(res => {
-        setPatient(res.data.data);
+    const fetchPatientData = async () => {
+      try {
+        // Get patient info
+        const patientRes = await userAPI.getById(id);
+        setPatient(patientRes.data?.data || patientRes.data);
+        
+        // Get patient medical records
+        try {
+          const recordsRes = await medicalAPI.getAll();
+          const patientRecords = recordsRes.data?.data?.filter(r => r.patientId === id) || [];
+          setRecords(patientRecords);
+        } catch (e) {
+          console.log('No records found');
+        }
+        
         setLoading(false);
-      })
-      .catch(() => {
+      } catch (err) {
         setError('Không tìm thấy thông tin bệnh nhân.');
         setLoading(false);
-      });
+      }
+    };
+
+    fetchPatientData();
   }, [id, navigate]);
 
   if (loading) return <div className="p-6">Đang tải...</div>;

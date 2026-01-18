@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Users, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { reportsAPI } from '../../services/api';
+import { examinationAPI, appointmentAPI } from '../../services/apiService';
 import { toast } from 'react-toastify';
 
 const StatCard = ({ icon: Icon, title, value, subtitle, bgColor }) => (
@@ -27,11 +27,32 @@ const Reports = () => {
     const fetchReports = async () => {
       try {
         setLoadingData(true);
-        const data = await reportsAPI.getDoctorReports(timeRange);
-        setReportData(data);
+        const [examsRes, apptRes] = await Promise.all([
+          examinationAPI.getAll(),
+          appointmentAPI.getAll()
+        ]);
+        
+        const exams = examsRes.data?.data || [];
+        const appointments = apptRes.data?.data || [];
+        
+        // Calculate stats
+        const completedExams = exams.filter(e => e.status === 'completed').length;
+        const pendingExams = exams.filter(e => e.status === 'pending').length;
+        const completedAppts = appointments.filter(a => a.status === 'completed').length;
+        
+        setReportData({
+          totalPatients: new Set(exams.map(e => e.patientId)).size,
+          totalExaminations: exams.length,
+          completedExams: completedExams,
+          pendingExams: pendingExams,
+          totalAppointments: appointments.length,
+          completedAppointments: completedAppts,
+          examinationSuccessRate: exams.length > 0 ? Math.round((completedExams / exams.length) * 100) : 0
+        });
       } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
+        console.error('Error loading reports:', error);
         toast.error('Không thể lấy dữ liệu báo cáo');
+        setReportData(null);
       } finally {
         setLoadingData(false);
       }
