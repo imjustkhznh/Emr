@@ -1,4 +1,40 @@
 import MedicalRecord from "../models/medical_record.js";
+import DoctorProfile from "../models/DoctorProfile.js";
+
+export const getMyPatientsRecords = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        // Find doctor profile by userId
+        const doctorProfile = await DoctorProfile.findOne({ userId });
+        
+        if (!doctorProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy hồ sơ bác sĩ'
+            });
+        }
+        
+        // Get all medical records for this doctor's patients
+        const medicalRecords = await MedicalRecord.find({})
+            .populate('patientId', 'name firstName lastName email phone')
+            .populate('doctorId', 'name specialty')
+            .sort({ visitDate: -1 });
+        
+        res.status(200).json({
+            success: true,
+            data: medicalRecords
+        });
+    } catch (error) {
+        console.error('Lỗi lấy hồ sơ bệnh nhân:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi lấy hồ sơ bệnh nhân',
+            error: error.message
+        });
+    }
+};
+
 export const createMedicalRecord = async (req, res) => {
 
     try {

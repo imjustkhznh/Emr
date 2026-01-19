@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, Download, Pill, Calendar, User, Loader, X, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, Download, Pill, Calendar, User, Loader, X, Search, Eye } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { medicalAPI, userAPI } from '../../services/apiService';
 
 const Prescriptions = () => {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -9,6 +8,8 @@ const Prescriptions = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     patientId: '',
@@ -24,22 +25,57 @@ const Prescriptions = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [presRes, patRes] = await Promise.all([
-        medicalAPI.getAll(),
-        userAPI.getAll()
-      ]);
+      const token = localStorage.getItem('accessToken');
       
-      if (presRes.data?.data) {
-        setPrescriptions(presRes.data.data);
+      // Fetch medical records to get prescriptions
+      const response = await fetch('http://localhost:5000/api/medical/my-patients-records', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      if (patRes.data?.data) {
-        const patientUsers = patRes.data.data.filter(u => u.role === 'patients');
-        setPatients(patientUsers);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        // Convert medical records to prescriptions format
+        const prescriptionsData = data.data
+          .filter(record => record.prescription && record.prescription.length > 0)
+          .map(record => {
+            // Get patient name from various possible fields
+            const patientId = record.patientId;
+            let patientName = 'N/A';
+            
+            if (patientId) {
+              if (typeof patientId === 'object') {
+                // Try name first, then firstName+lastName
+                patientName = patientId.name || 
+                  (patientId.firstName ? 
+                    `${patientId.firstName} ${patientId.lastName || ''}`.trim() : 
+                    'N/A');
+              } else {
+                patientName = 'N/A';
+              }
+            }
+            
+            return {
+              _id: record._id,
+              patientId: record.patientId?._id || record.patientId,
+              patientName: patientName,
+              diagnosis: record.diagnosis,
+              medications: record.prescription,
+              visitDate: record.visitDate,
+              notes: record.notes
+            };
+          });
+        
+        console.log('Prescriptions data:', prescriptionsData);
+        setPrescriptions(prescriptionsData);
       }
     } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error('Lỗi khi tải dữ liệu');
+      console.error('Error loading prescriptions:', error);
+      toast.error('Lỗi khi tải đơn thuốc');
     } finally {
       setLoading(false);
     }
@@ -156,7 +192,7 @@ ${prescription.medications.map((med, idx) =>
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-3 rounded-lg">
@@ -203,58 +239,82 @@ ${prescription.medications.map((med, idx) =>
             <Loader className="w-8 h-8 animate-spin mx-auto text-blue-500" />
           </div>
         ) : filteredPrescriptions.length > 0 ? (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Bệnh Nhân</th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Chẩn Đoán</th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Số Thuốc</th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Ngày Kê</th>
-                <th className="px-6 py-4 text-center text-sm font-bold text-gray-900">Hành Động</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredPrescriptions.map((p) => (
-                <tr key={p._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+            {filteredPrescriptions.map((p) => (
+              <div key={p._id} className="bg-white rounded-2xl border-2 border-blue-200 p-6 hover:shadow-2xl hover:border-blue-400 transition-all duration-300 transform hover:scale-105">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                      {p.patientName?.charAt(0).toUpperCase() || 'P'}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900">{p.patientName || 'N/A'}</h3>
+                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(p.visitDate).toLocaleDateString('vi-VN')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Diagnosis */}
+                <div className="mb-5 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-l-4 border-blue-500">
+                  <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Chẩn Đoán</p>
+                  <p className="text-lg font-bold text-gray-900">{p.diagnosis}</p>
+                </div>
+
+                {/* Medications List */}
+                <div className="mb-5">
+                  <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">Danh Sách Thuốc <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs ml-2">{p.medications?.length || 0}</span></p>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {p.medications?.map((med, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-300 hover:border-blue-400 transition-colors">
+                        <p className="font-semibold text-gray-900">{idx + 1}. {med.medicationName}</p>
+                        <div className="flex gap-4 text-xs text-gray-600 mt-1">
+                          <span>💊 {med.dosage}</span>
+                          <span>⏱️ {med.frequency}</span>
+                          <span>📅 {med.duration}</span>
+                        </div>
                       </div>
-                      <span className="font-semibold text-gray-900">{p.patientName}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">{p.diagnosis}</td>
-                  <td className="px-6 py-4 text-gray-700">{p.medications?.length || 0} loại</td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {new Date(p.createdDate).toLocaleDateString('vi-VN')}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => handleEdit(p)}
-                        className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-colors">
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDownload(p)}
-                        className="p-2 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg transition-colors">
-                        <Download className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(p._id)}
-                        className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setSelectedPrescription(p);
+                      setShowDetailModal(true);
+                    }}
+                    className="flex-1 p-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <Eye className="h-5 w-5" />
+                    Chi Tiết
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const content = `ĐƠN THUỐC\n${'═'.repeat(50)}\nBệnh nhân: ${p.patientName}\nChẩn đoán: ${p.diagnosis}\nNgày khám: ${new Date(p.visitDate).toLocaleDateString('vi-VN')}\n\nDANH SÁCH THUỐC:\n${p.medications?.map((m, i) => `${i+1}. ${m.medicationName}\n   • Liều lượng: ${m.dosage}\n   • Tần suất: ${m.frequency}\n   • Thời gian: ${m.duration}`).join('\n\n') || 'Không có'}`;
+                      const element = document.createElement('a');
+                      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+                      element.setAttribute('download', `don-thuoc-${p.patientName}-${new Date().getTime()}.txt`);
+                      element.style.display = 'none';
+                      document.body.appendChild(element);
+                      element.click();
+                      document.body.removeChild(element);
+                      toast.success('Tải xuống thành công!');
+                    }}
+                    className="p-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg transition-all shadow-md hover:shadow-lg">
+                    <Download className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="p-8 text-center text-gray-500">
-            Không có đơn thuốc nào
+            <Pill className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-lg font-semibold">Không có đơn thuốc nào</p>
           </div>
         )}
       </div>
@@ -371,6 +431,110 @@ ${prescription.medications.map((med, idx) =>
                   Hủy
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedPrescription && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl animate-in">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 flex justify-between items-center rounded-t-3xl">
+              <div>
+                <h2 className="text-3xl font-bold">Chi Tiết Đơn Thuốc</h2>
+                <p className="text-blue-100 mt-1">{selectedPrescription.patientName}</p>
+              </div>
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="hover:bg-blue-700 p-2 rounded-lg transition-colors">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-8 max-h-[70vh] overflow-y-auto">
+              {/* Patient & Diagnosis */}
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
+                  <p className="text-sm font-bold text-blue-600 uppercase mb-2">Bệnh Nhân</p>
+                  <p className="text-2xl font-bold text-gray-900">{selectedPrescription.patientName}</p>
+                </div>
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200">
+                  <p className="text-sm font-bold text-green-600 uppercase mb-2">Ngày Khám</p>
+                  <p className="text-2xl font-bold text-gray-900">{new Date(selectedPrescription.visitDate).toLocaleDateString('vi-VN')}</p>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-6 rounded-2xl border-l-4 border-yellow-500 mb-8">
+                <p className="text-sm font-bold text-yellow-600 uppercase mb-2">Chẩn Đoán</p>
+                <p className="text-xl font-bold text-gray-900">{selectedPrescription.diagnosis}</p>
+              </div>
+
+              {/* Medications */}
+              <div>
+                <p className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  💊 Danh Sách Thuốc <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">{selectedPrescription.medications?.length || 0}</span>
+                </p>
+                <div className="space-y-3">
+                  {selectedPrescription.medications?.map((med, idx) => (
+                    <div key={idx} className="bg-white border-2 border-gray-200 hover:border-blue-400 rounded-2xl p-5 transition-all">
+                      <div className="flex items-start justify-between mb-3">
+                        <h4 className="text-lg font-bold text-gray-900">{idx + 1}. {med.medicationName}</h4>
+                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm font-semibold">Thuốc</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-xs text-blue-600 font-bold uppercase mb-1">Liều Lượng</p>
+                          <p className="text-lg font-bold text-gray-900">{med.dosage}</p>
+                        </div>
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <p className="text-xs text-green-600 font-bold uppercase mb-1">Tần Suất</p>
+                          <p className="text-lg font-bold text-gray-900">{med.frequency}</p>
+                        </div>
+                        <div className="bg-orange-50 p-3 rounded-lg">
+                          <p className="text-xs text-orange-600 font-bold uppercase mb-1">Thời Gian</p>
+                          <p className="text-lg font-bold text-gray-900">{med.duration}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedPrescription.notes && (
+                <div className="mt-8 bg-purple-50 border-l-4 border-purple-500 p-6 rounded-2xl">
+                  <p className="text-sm font-bold text-purple-600 uppercase mb-2">Ghi Chú</p>
+                  <p className="text-gray-800">{selectedPrescription.notes}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 border-t p-6 rounded-b-3xl flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  const content = `ĐƠN THUỐC\n${'═'.repeat(60)}\nBệnh nhân: ${selectedPrescription.patientName}\nChẩn đoán: ${selectedPrescription.diagnosis}\nNgày khám: ${new Date(selectedPrescription.visitDate).toLocaleDateString('vi-VN')}\n\nDANH SÁCH THUỐC:\n${selectedPrescription.medications?.map((m, i) => `${i+1}. ${m.medicationName}\n   • Liều lượng: ${m.dosage}\n   • Tần suất: ${m.frequency}\n   • Thời gian: ${m.duration}`).join('\n\n')}`;
+                  const element = document.createElement('a');
+                  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+                  element.setAttribute('download', `don-thuoc-${selectedPrescription.patientName}-${new Date().getTime()}.txt`);
+                  element.style.display = 'none';
+                  document.body.appendChild(element);
+                  element.click();
+                  document.body.removeChild(element);
+                  toast.success('Tải xuống thành công!');
+                }}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-md hover:shadow-lg">
+                <Download className="h-5 w-5" />
+                Tải Xuống
+              </button>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-bold transition-colors">
+                Đóng
+              </button>
             </div>
           </div>
         </div>

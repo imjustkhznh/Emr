@@ -1,4 +1,36 @@
 import Schedule from '../models/Schedule.js';
+import DoctorProfile from '../models/DoctorProfile.js';
+
+export const getMySchedules = async (req, res) => {
+  try {
+    // Get doctorProfileId from authenticated user
+    const userId = req.user.id;
+    
+    // Find doctor profile by userId
+    const doctorProfile = await DoctorProfile.findOne({ userId });
+    
+    if (!doctorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy hồ sơ bác sĩ'
+      });
+    }
+    
+    const schedules = await Schedule.find({ doctor: doctorProfile._id })
+      .sort({ date: 1 });
+    
+    res.status(200).json({
+      success: true,
+      data: schedules
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy lịch làm việc của tôi',
+      error: error.message
+    });
+  }
+};
 
 export const getSchedulesByDoctor = async (req, res) => {
   try {

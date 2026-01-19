@@ -1,5 +1,6 @@
 import express from 'express';
 import { 
+  getMySchedules,
   getSchedulesByDoctor,
   getAllSchedules, 
   createSchedule, 
@@ -10,6 +11,7 @@ import { protectedRoute } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+router.get('/my-schedules', protectedRoute, getMySchedules);
 router.get('/', getAllSchedules);
 router.get('/doctor/:doctorId', getSchedulesByDoctor);
 router.post('/', protectedRoute, createSchedule);

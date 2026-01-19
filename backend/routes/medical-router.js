@@ -1,9 +1,10 @@
 import express from 'express';
 import { protectedRoute } from '../middleware/authMiddleware.js';
-import {createMedicalRecord,getMedicalRecordById,getMedicalRecords,updateMedicalRecord,deleteMedicalRecord } from '../controllers/medical_controller.js';
+import {getMyPatientsRecords,createMedicalRecord,getMedicalRecordById,getMedicalRecords,updateMedicalRecord,deleteMedicalRecord } from '../controllers/medical_controller.js';
 import { isDoctorRole, isPatientRole, setMedicalRecordFilter } from '../middleware/medical_middleware.js';
 const router_medical = express.Router();
 
+router_medical.get("/my-patients-records", protectedRoute, isDoctorRole, getMyPatientsRecords);
 router_medical.post("/records", protectedRoute, isDoctorRole, createMedicalRecord);
 router_medical.get("/records/patient", protectedRoute, isPatientRole, getMedicalRecordById);
 // ✅ Sử dụng middleware setMedicalRecordFilter để tự động filter theo role

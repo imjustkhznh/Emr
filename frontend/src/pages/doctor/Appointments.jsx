@@ -59,16 +59,42 @@ const Appointments = () => {
         
         // Fetch appointments
         const appointmentsRes = await appointmentAPI.getAll();
-        console.log('📋 Appointments response:', appointmentsRes.data);
-        if (appointmentsRes.data && appointmentsRes.data.data) {
-          setAppointments(appointmentsRes.data.data);
-          console.log('✅ Set appointments:', appointmentsRes.data.data);
-        }
-
-        // Fetch patients list
+        console.log('📋 All Appointments count:', appointmentsRes.data?.data?.length);
+        
+        // Fetch patients list để check role
         const patientsRes = await userAPI.getAll();
+        let patientsList = [];
         if (patientsRes.data && patientsRes.data.data) {
-          setPatients(patientsRes.data.data);
+          patientsList = patientsRes.data.data;
+          setPatients(patientsList);
+        }
+        
+        // Filter appointments - chỉ lấy những appointments mà patient không phải doctor/admin
+        let filteredAppointments = [];
+        if (appointmentsRes.data && appointmentsRes.data.data) {
+          filteredAppointments = appointmentsRes.data.data.filter(apt => {
+            // Lấy patient info
+            const patientId = apt.patientId?._id || apt.patientId;
+            
+            // Tìm patient trong danh sách để check role
+            const patient = patientsList.find(p => 
+              p._id === patientId || p._id?.toString() === patientId?.toString()
+            );
+            
+            // Chỉ lấy appointments mà patient không phải doctor hoặc admin
+            if (!patient) return true; // Nếu không tìm thấy, vẫn lấy
+            
+            const role = patient.role?.toLowerCase?.() || patient.role || '';
+            const isDoctorOrAdmin = role === 'doctor' || role === 'admin';
+            
+            // Loại bỏ appointments mà doctorInfo.name là "Doctor User"
+            const isDoctorUser = apt.doctorInfo?.name === 'Doctor User';
+            
+            return !isDoctorOrAdmin && !isDoctorUser;
+          });
+          
+          setAppointments(filteredAppointments);
+          console.log(`✅ Loaded ${filteredAppointments.length} appointments (patients only)`);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -323,7 +349,7 @@ const Appointments = () => {
                                 {statusLabels[a.status] || a.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{a.doctorInfo?.name || a.doctorProfileId?.name || 'N/A'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{a.doctorInfo?.name || 'N/A'}</td>
                             <td className="px-6 py-4 text-xs text-gray-600">{createdStr}</td>
                             <td className="px-6 py-4 text-center">
                               <div className="flex gap-2 justify-center">

@@ -10,7 +10,9 @@ import {
   Stethoscope,
   ClipboardList,
   LogOut,
-  Heart
+  Heart,
+  Clock,
+  Folder
 } from 'lucide-react';
 
 const Sidebar = ({ doctor, loading }) => {
@@ -42,6 +44,16 @@ const Sidebar = ({ doctor, loading }) => {
       name: 'Lịch hẹn hôm nay', 
       icon: <Calendar className="h-5 w-5" />, 
       path: '/doctor/appointments' 
+    },
+    { 
+      name: 'Lịch làm việc', 
+      icon: <Clock className="h-5 w-5" />, 
+      path: '/doctor/schedules' 
+    },
+    { 
+      name: 'Hồ sơ y tế', 
+      icon: <Folder className="h-5 w-5" />, 
+      path: '/doctor/medical-records' 
     },
     { 
       name: 'Đơn thuốc', 

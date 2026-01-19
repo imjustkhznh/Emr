@@ -12,6 +12,9 @@ import PatientDetail from './pages/doctor/PatientDetail';
 import DoctorPrescriptions from './pages/doctor/Prescriptions';
 import DoctorExaminations from './pages/doctor/Examinations';
 import Reports from './pages/doctor/Reports';
+import DoctorSchedules from './pages/doctor/Schedules';
+import DoctorMedicalRecords from './pages/doctor/MedicalRecords';
+import DoctorSettings from './pages/doctor/Settings';
 import PatientLayout from './components/Patient/PatientLayout';
 import PatientHome from './pages/patient/Home';
 import Profile from './pages/patient/Profile';
@@ -40,7 +43,7 @@ import Invoices from './pages/admin/Invoices';
 import Departments from './pages/admin/Departments';
 import Specialties from './pages/admin/Specialties';
 import MedicalRecords from './pages/admin/MedicalRecords';
-import DoctorSchedules from './pages/admin/Schedules';
+import AdminSchedules from './pages/admin/Schedules';
 import StaffLayout from './components/Staff/StaffLayout';
 import StaffPrescriptions from './pages/staff/Prescriptions';
 import StaffAppointments from './pages/staff/Appointments';
@@ -64,9 +67,12 @@ function App() {
             <Route path="profile" element={<DoctorProfile />} />
             <Route path="patient/:id" element={<PatientDetail />} />
             <Route path="appointments" element={<DoctorAppointments />} />
+            <Route path="schedules" element={<DoctorSchedules />} />
+            <Route path="medical-records" element={<DoctorMedicalRecords />} />
             <Route path="prescriptions" element={<DoctorPrescriptions />} />
             <Route path="examinations" element={<DoctorExaminations />} />
             <Route path="reports" element={<ProtectedRoute element={<Reports />} allowedRoles={['doctor', 'Admin']} />} />
+            <Route path="settings" element={<DoctorSettings />} />
           </Route>
 
           {/* Patient Routes */}
@@ -102,7 +108,7 @@ function App() {
             <Route path="departments" element={<Departments />} />
             <Route path="specialties" element={<Specialties />} />
             <Route path="medical-records" element={<MedicalRecords />} />
-            <Route path="schedules" element={<DoctorSchedules />} />
+            <Route path="schedules" element={<AdminSchedules />} />
           </Route>
 
           {/* Staff Routes */}
