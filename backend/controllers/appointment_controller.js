@@ -17,17 +17,45 @@ const mapStatus = (status) => {
 export const getAppointments = async (req, res) => {
   try {
     console.log('📋 getAppointments called!');
+    console.log('🔐 req.user:', req.user);
+    let query = {};
+    
+    // ALWAYS filter theo doctor nếu user là doctor
+    if (req.user?.role && req.user.role.toLowerCase() === 'doctor') {
+      try {
+        const DoctorProfile = (await import('../models/DoctorProfile.js')).default;
+        const doctorProfile = await DoctorProfile.findOne({ userId: req.user._id });
+        
+        if (doctorProfile) {
+          query.doctorProfileId = doctorProfile._id;
+          console.log('✅ FILTERED for doctor - doctorProfileId:', doctorProfile._id);
+        } else {
+          console.log('⚠️ No doctor profile found for userId:', req.user._id);
+        }
+      } catch (error) {
+        console.error('❌ Error finding doctor profile:', error.message);
+      }
+    } else {
+      console.log('ℹ️ Not a doctor, returning all appointments');
+    }
+    
+    console.log('🔍 Query filter:', JSON.stringify(query));
+    
     // Populate doctorProfileId để lấy tên bác sĩ thực tế
-    const appointments = await Appointment.find()
+    const appointments = await Appointment.find(query)
       .populate({
         path: 'doctorProfileId',
         select: 'name email phone specialty'
       })
-      .sort({ appointmentDate: 1, appointmentTime: 1 });
+      .sort({ appointmentDate: -1, appointmentTime: -1 });
     
     console.log('✅ Found appointments:', appointments.length);
     if (appointments.length > 0) {
-      console.log('🔍 First doctorProfileId:', appointments[0].doctorProfileId);
+      console.log('🔍 First appointment:', {
+        id: appointments[0]._id,
+        doctorProfileId: appointments[0].doctorProfileId?._id || appointments[0].doctorProfileId,
+        patientInfo: appointments[0].patientInfo?.name
+      });
     }
     
     const populatedAppointments = await Promise.all(
@@ -60,7 +88,6 @@ export const getAppointments = async (req, res) => {
             phone: appt.doctorProfileId.phone,
             specialty: appt.doctorProfileId.specialty
           };
-          console.log('✅ Set doctorInfo from doctorProfileId:', result.doctorInfo.name);
         }
         result.patientInfo = patientInfo;
         result.statusDisplay = mapStatus(result.status); // Thêm status display

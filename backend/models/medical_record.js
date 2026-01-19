@@ -78,6 +78,11 @@ const medicalRecordSchema = new mongoose.Schema({
     type: String
   },
   
+  // Phương pháp điều trị
+  treatment: {
+    type: String
+  },
+  
   // Kết quả xét nghiệm
   labResults: [{
     testName: String,

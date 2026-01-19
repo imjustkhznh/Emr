@@ -37,10 +37,20 @@ const DoctorSettings = () => {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
       });
       const data = await response.json();
-      if (data.success) {
-        setProfileData(data.data);
+      if (data.success && data.data) {
+        // Ensure all fields have default values (empty string if undefined)
+        setProfileData({
+          firstName: data.data.firstName || data.data.name?.split(' ')[0] || '',
+          lastName: data.data.lastName || data.data.name?.split(' ').slice(1).join(' ') || '',
+          email: data.data.email || '',
+          phone: data.data.phone || '',
+          specialization: data.data.profile?.specialty || '',
+          licenseNumber: data.data.profile?.licenseNumber || '',
+          bio: data.data.profile?.bio || ''
+        });
       }
     } catch (error) {
+      console.error('Error:', error);
       toast.error('Lỗi khi tải thông tin hồ sơ');
     }
   };

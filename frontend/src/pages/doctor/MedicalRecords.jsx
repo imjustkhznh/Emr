@@ -81,53 +81,83 @@ const DoctorMedicalRecords = () => {
       ) : filteredRecords.length > 0 ? (
         <div className="space-y-4">
           {filteredRecords.map((record) => (
-            <div key={record._id} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <p className="text-xs text-gray-600 font-semibold mb-1">Bệnh Nhân</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {record.patientId?.firstName} {record.patientId?.lastName}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600 font-semibold mb-1">Mã Hồ Sơ</p>
-                  <p className="text-sm font-bold text-gray-900">{record._id.substring(0, 8)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600 font-semibold mb-1">Ngày Tạo</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {new Date(record.createdAt).toLocaleDateString('vi-VN')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600 font-semibold mb-1">Trạng Thái</p>
-                  <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                    Đang Điều Trị
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pb-4 border-b border-gray-200">
-                <div>
-                  <p className="text-xs text-gray-600 font-semibold mb-1">Chẩn Đoán</p>
-                  <p className="text-sm text-gray-700">{record.diagnosis || 'Chưa xác định'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600 font-semibold mb-1">Phương Pháp Điều Trị</p>
-                  <p className="text-sm text-gray-700">{record.treatment || 'Chưa xác định'}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-xs text-gray-600 font-semibold mb-1">Ghi Chú</p>
-                  <p className="text-sm text-gray-700">{record.notes || 'Không có ghi chú'}</p>
+            <div key={record._id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-cyan-50 to-blue-50 p-6 border-b border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">👤 Bệnh Nhân</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {record.patientId?.firstName} {record.patientId?.lastName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">📋 Mã Hồ Sơ</p>
+                    <p className="text-lg font-bold text-cyan-600">{record._id.substring(0, 8)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">📅 Ngày Tạo</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {new Date(record.createdAt).toLocaleDateString('vi-VN')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">🏥 Trạng Thái</p>
+                    <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full">
+                      Đang Điều Trị
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-2 justify-end">
-                <button className="flex items-center gap-2 px-4 py-2 bg-cyan-100 text-cyan-700 rounded-lg font-semibold hover:bg-cyan-200 transition-colors">
+              {/* Content */}
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Chẩn Đoán */}
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p className="text-xs text-blue-600 font-bold uppercase tracking-widest mb-2">🔍 Chẩn Đoán</p>
+                    <p className="text-base font-semibold text-gray-900 leading-relaxed">
+                      {record.diagnosis ? (
+                        <span className="text-blue-700">{record.diagnosis}</span>
+                      ) : (
+                        <span className="text-gray-400 italic">Chưa xác định</span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Phương Pháp Điều Trị */}
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                    <p className="text-xs text-green-600 font-bold uppercase tracking-widest mb-2">💊 Phương Pháp Điều Trị</p>
+                    <p className="text-base font-semibold text-gray-900 leading-relaxed">
+                      {record.treatment ? (
+                        <span className="text-green-700">{record.treatment}</span>
+                      ) : (
+                        <span className="text-gray-400 italic">Chưa xác định</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Ghi Chú */}
+                <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                  <p className="text-xs text-amber-600 font-bold uppercase tracking-widest mb-2">📝 Ghi Chú</p>
+                  <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">
+                    {record.notes ? (
+                      record.notes
+                    ) : (
+                      <span className="text-gray-400 italic">Không có ghi chú</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex gap-2 justify-end">
+                <button className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-colors">
                   <Eye className="h-4 w-4" />
                   Xem Chi Tiết
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                <button className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
                   <Download className="h-4 w-4" />
                   Tải Xuống
                 </button>

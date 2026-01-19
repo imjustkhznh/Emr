@@ -31,12 +31,14 @@ const Reports = () => {
   const [timeRange, setTimeRange] = useState('month');
   const [loading, setLoading] = useState(true);
   const [doctorId, setDoctorId] = useState(null);
+  const [doctorProfileId, setDoctorProfileId] = useState(null);
 
   useEffect(() => {
     // Lấy doctorId từ localStorage
     const user = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('user') || '{}');
     const userId = user._id || user.id;
     setDoctorId(userId);
+    console.log('👨‍⚕️ Doctor user ID:', userId);
   }, []);
 
   useEffect(() => {
@@ -56,26 +58,54 @@ const Reports = () => {
       let exams = examsRes.data?.data || [];
       let appointments = apptsRes.data?.data || [];
 
+      console.log('📊 Raw exams:', exams.length);
+      console.log('📊 Raw appointments:', appointments.length);
+      console.log('👤 Current doctorId:', doctorId);
+      
       // Lọc dữ liệu chỉ của bác sĩ hiện tại
       exams = exams.filter(e => 
         (e.doctorId?._id || e.doctorId) === doctorId || 
         (e.doctor?._id || e.doctor) === doctorId
       );
       
-      appointments = appointments.filter(a => 
-        (a.doctorId?._id || a.doctorId) === doctorId || 
-        (a.doctor?._id || a.doctor) === doctorId
-      );
+      // Filter appointments: những appointment này có doctorInfo.userId hoặc doctorId match current doctor
+      // Vì backend trả về tất cả, cần filter ở frontend
+      appointments = appointments.filter(a => {
+        const apptDoctorId = (a.doctorInfo?.userId?._id || a.doctorInfo?.userId || a.doctorId?._id || a.doctorId || '').toString();
+        const currentDoctorId = (doctorId || '').toString();
+        const isMatch = apptDoctorId === currentDoctorId;
+        if (!isMatch && appointments.length > 0) {
+          console.log('🔍 Check:', {
+            apptDoctorId: apptDoctorId.substring(0, 8),
+            currentDoctorId: currentDoctorId.substring(0, 8),
+            doctorInfo: a.doctorInfo,
+            match: isMatch
+          });
+        }
+        return isMatch;
+      });
+      
+      console.log('✅ Filtered exams:', exams.length);
+      console.log('✅ Filtered appointments:', appointments.length);
 
       // Tính toán thống kê
       const completedExams = exams.filter(e => e.status === 'completed' || e.status === 'hoàn thành').length;
       const completedAppts = appointments.filter(a => a.status === 'completed' || a.status === 'hoàn thành').length;
       const cancelledAppts = appointments.filter(a => a.status === 'cancelled' || a.status === 'hủy').length;
       const pendingAppts = appointments.filter(a => a.status === 'pending' || a.status === 'chờ').length;
+      const confirmedAppts = appointments.filter(a => a.status === 'confirmed' || a.status === 'xác nhận').length;
 
-      const totalPatients = new Set(appointments.map(a => a.patientId?._id || a.patientId)).size;
+      const totalPatients = new Set(appointments.map(a => a.patientId?._id || a.patientId || a.patientInfo?.name)).size;
       const completionRate = appointments.length > 0 ? Math.round((completedAppts / appointments.length) * 100) : 0;
       const cancellationRate = appointments.length > 0 ? Math.round((cancelledAppts / appointments.length) * 100) : 0;
+
+      console.log('📈 Stats:', {
+        total: appointments.length,
+        completed: completedAppts,
+        pending: pendingAppts,
+        cancelled: cancelledAppts,
+        totalPatients: totalPatients
+      });
 
       // Tính dữ liệu theo tháng (6 tháng gần đây)
       const monthlyData = generateMonthlyData(appointments);
@@ -95,7 +125,7 @@ const Reports = () => {
         monthlyData: monthlyData,
         statusDistribution: [
           { status: 'Hoàn thành', count: completedAppts, percentage: completionRate, color: 'bg-green-500' },
-          { status: 'Chưa hoàn thành', count: pendingAppts, percentage: Math.round((pendingAppts / appointments.length) * 100) || 0, color: 'bg-blue-500' },
+          { status: 'Chưa hoàn thành', count: pendingAppts + confirmedAppts, percentage: Math.round(((pendingAppts + confirmedAppts) / appointments.length) * 100) || 0, color: 'bg-blue-500' },
           { status: 'Đã hủy', count: cancelledAppts, percentage: cancellationRate, color: 'bg-red-500' }
         ],
         weeklyData: weeklyData

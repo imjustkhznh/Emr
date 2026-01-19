@@ -21,9 +21,21 @@ export const getMyPatientsRecords = async (req, res) => {
             .populate('doctorId', 'name specialty')
             .sort({ visitDate: -1 });
         
+        // Transform data to ensure patient name is available
+        const transformedRecords = medicalRecords.map(record => {
+            const recordObj = record.toObject();
+            // Use name field if firstName/lastName don't exist
+            if (!recordObj.patientId?.firstName && recordObj.patientId?.name) {
+                const nameParts = recordObj.patientId.name.split(' ');
+                recordObj.patientId.firstName = nameParts[0];
+                recordObj.patientId.lastName = nameParts.slice(1).join(' ');
+            }
+            return recordObj;
+        });
+        
         res.status(200).json({
             success: true,
-            data: medicalRecords
+            data: transformedRecords
         });
     } catch (error) {
         console.error('Lỗi lấy hồ sơ bệnh nhân:', error);
