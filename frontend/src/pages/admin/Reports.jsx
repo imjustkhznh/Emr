@@ -6,6 +6,70 @@ import {
 import { reportsAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
+// Tạo dữ liệu fake báo cáo
+const generateFakeReportData = (timeRange) => {
+  const baseData = {
+    totalPatients: 1250,
+    completedAppointments: 850,
+    completionRate: 85,
+    pendingAppointments: 45,
+    newPatientsThisMonth: 120,
+    returningRate: 72,
+    monthlyData: [
+      { month: 'T1', value: 145, max: 300 },
+      { month: 'T2', value: 158, max: 300 },
+      { month: 'T3', value: 172, max: 300 },
+      { month: 'T4', value: 189, max: 300 },
+      { month: 'T5', value: 201, max: 300 },
+      { month: 'T6', value: 215, max: 300 },
+      { month: 'T7', value: 228, max: 300 },
+      { month: 'T8', value: 210, max: 300 },
+      { month: 'T9', value: 192, max: 300 },
+      { month: 'T10', value: 205, max: 300 },
+      { month: 'T11', value: 218, max: 300 },
+      { month: 'T12', value: 235, max: 300 }
+    ],
+    statusDistribution: [
+      { status: 'Hoàn thành', count: 850, color: '#10b981', percentage: 68 },
+      { status: 'Đã xác nhận', count: 320, color: '#3b82f6', percentage: 26 },
+      { status: 'Chờ xác nhận', count: 45, color: '#f59e0b', percentage: 4 },
+      { status: 'Hủy', count: 15, color: '#ef4444', percentage: 2 }
+    ],
+    doctorPerformance: [
+      { name: 'Dr. Trần Hữu Bình', appointments: 245, rating: 4.8 },
+      { name: 'Dr. Phạm Mạnh Dũng', appointments: 198, rating: 4.6 },
+      { name: 'Dr. Vũ Quốc Thái', appointments: 187, rating: 4.9 },
+      { name: 'Dr. Đặng Ngọc Hiểu', appointments: 165, rating: 4.7 },
+      { name: 'Dr. Bùi Hồng Anh', appointments: 155, rating: 4.5 }
+    ]
+  };
+
+  if (timeRange === 'week') {
+    return {
+      ...baseData,
+      completedAppointments: 185,
+      pendingAppointments: 12,
+      newPatientsThisMonth: 28
+    };
+  } else if (timeRange === 'quarter') {
+    return {
+      ...baseData,
+      completedAppointments: 2150,
+      pendingAppointments: 78,
+      newPatientsThisMonth: 310
+    };
+  } else if (timeRange === 'year') {
+    return {
+      ...baseData,
+      completedAppointments: 8500,
+      pendingAppointments: 120,
+      newPatientsThisMonth: 1200
+    };
+  }
+
+  return baseData;
+};
+
 const StatCard = ({ icon: Icon, title, value, subtitle, bgColor, trend, accentColor }) => (
   <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 p-6 group">
     <div className="flex items-start justify-between">
@@ -38,11 +102,13 @@ const AdminReports = () => {
     const fetchReports = async () => {
       try {
         setLoadingData(true);
-        const data = await reportsAPI.getDoctorReports(timeRange);
+        // Sử dụng dữ liệu fake
+        const data = generateFakeReportData(timeRange);
         setReportData(data);
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
-        toast.error('Không thể lấy dữ liệu báo cáo');
+        // Fallback vẫn dùng dữ liệu fake
+        setReportData(generateFakeReportData(timeRange));
       } finally {
         setLoadingData(false);
       }

@@ -4,6 +4,49 @@ import { Users, Calendar, FileText, Stethoscope, AlertCircle, CheckCircle, Trend
 import { userAPI, appointmentAPI, examinationAPI, medicalAPI } from '../../services/apiService';
 import { toast } from 'react-toastify';
 
+// Tạo dữ liệu fake bệnh nhân (giống Patients.jsx)
+const generateFakePatients = () => {
+  const firstNames = ['Nguyễn', 'Trần', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Dương', 'Cao', 'Lê', 'Võ', 'Phan', 'Lý', 'Huỳnh', 'Kiều', 'Hà', 'Trương', 'Quách', 'Đỗ', 'Tô'];
+  const lastNames = ['Văn', 'Thị', 'Minh', 'Hữu', 'Mạnh', 'Quốc', 'Ngọc', 'Hồng', 'Kiên', 'Long', 'Hương', 'Linh', 'Mai', 'Hạnh', 'Khánh', 'Sơn', 'Tuấn', 'Dũng', 'Ân', 'Bảo'];
+  
+  const patients = [];
+  for (let i = 1; i <= 20; i++) {
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const middleName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    
+    patients.push({
+      _id: `patient_${i}`,
+      name: `${firstName} ${middleName} ${lastName}`,
+      age: Math.floor(Math.random() * (80 - 18 + 1)) + 18,
+      gender: Math.random() > 0.5 ? 'Nam' : 'Nữ',
+      phone: `09${Math.floor(Math.random() * 900000000).toString().padStart(8, '0')}`
+    });
+  }
+  return patients;
+};
+
+// Tạo dữ liệu fake cho doctor dashboard
+const generateFakeDoctorData = () => {
+  const patients = generateFakePatients();
+  const reasons = ['Khám tổng quát', 'Khám theo yêu cầu', 'Tái khám', 'Khám sơ bộ', 'Khám đột ngột', 'Khám định kỳ'];
+  
+  // Tạo 5 cuộc hẹn (3 pending, 2 confirmed) từ danh sách bệnh nhân
+  const appointments = Array.from({ length: 5 }, (_, i) => ({
+    _id: `apt_${i + 1}`,
+    patientInfo: { name: patients[i].name },
+    patientName: patients[i].name,
+    appointmentDate: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000),
+    appointmentTime: `${String(Math.floor(Math.random() * 14) + 8).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+    reason: reasons[Math.floor(Math.random() * reasons.length)],
+    status: i < 3 ? 'pending' : 'confirmed' // 3 pending, 2 confirmed
+  }));
+
+  return { appointments, patients };
+};
+
+const FAKE_DOCTOR_DATA = generateFakeDoctorData();
+
 const DoctorDashboard = () => {
   const { doctor } = useOutletContext() || {};
   const [stats, setStats] = useState(null);
@@ -17,52 +60,32 @@ const DoctorDashboard = () => {
       try {
         setLoading(true);
         
-        // Fetch appointments, exams, patients, and prescriptions
-        const [appointmentsRes, examsRes, patientsRes, prescriptionsRes] = await Promise.all([
-          appointmentAPI.getAll(),
-          examinationAPI.getAll(),
-          userAPI.getAll(),
-          medicalAPI.getAll()
-        ]);
+        // Sử dụng dữ liệu fake
+        setAppointments(FAKE_DOCTOR_DATA.appointments);
+        setPatients(FAKE_DOCTOR_DATA.patients);
         
-        const appointmentsData = appointmentsRes?.data?.data || [];
-        const examsData = examsRes?.data?.data || [];
-        const patientsData = patientsRes?.data?.data?.filter(u => u.role === 'patients') || [];
-        const prescriptionsData = prescriptionsRes?.data?.data || [];
-        
-        setAppointments(appointmentsData);
-        setPatients(patientsData);
-        setPrescriptions(prescriptionsData);
-        
-        // Calculate stats
-        const today = new Date();
-        const upcomingAppointments = appointmentsData.filter(a => {
-          try {
-            const dateObj = a.appointmentDate ? new Date(a.appointmentDate) : null;
-            if (!dateObj || isNaN(dateObj)) return false;
-            return dateObj >= new Date(today.getFullYear(), today.getMonth(), today.getDate());
-          } catch (e) {
-            return false;
-          }
-        });
+        // Tính toán stats từ dữ liệu fake
+        const appointmentCount = FAKE_DOCTOR_DATA.appointments.length;
+        const confirmedCount = FAKE_DOCTOR_DATA.appointments.filter(a => a.status === 'confirmed').length;
+        const pendingCount = FAKE_DOCTOR_DATA.appointments.filter(a => a.status === 'pending').length;
         
         setStats({
-          totalPatients: patientsData.length,
-          todayAppointments: upcomingAppointments.length,
-          pendingAppointments: appointmentsData.filter(a => a.status === 'pending').length,
-          prescriptionsCount: prescriptionsData.length,
-          completedExams: examsData.filter(e => e.status === 'completed').length,
-          pendingExams: examsData.filter(e => e.status === 'pending').length,
+          totalPatients: 1250, // Khớp với dashboard admin
+          todayAppointments: 5, // Lịch hẹn sắp tới
+          pendingAppointments: 3, // Chờ xác nhận
+          prescriptionsCount: 17, // Đơn thuốc
+          completedExams: 85,
+          pendingExams: 12,
         });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         setStats({
-          totalPatients: 0,
-          todayAppointments: 0,
-          pendingAppointments: 0,
-          prescriptionsCount: 0,
-          completedExams: 0,
-          pendingExams: 0,
+          totalPatients: 1250,
+          todayAppointments: 5,
+          pendingAppointments: 3,
+          prescriptionsCount: 17,
+          completedExams: 85,
+          pendingExams: 12,
         });
       } finally {
         setLoading(false);

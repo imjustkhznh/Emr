@@ -6,13 +6,13 @@ const Results = () => {
       date: '01/03/2026',
       type: 'Xét nghiệm máu tổng quát',
       status: 'Đã có kết quả',
-      doctor: 'BS. Nguyễn Thị Lan',
+      doctor: 'Dr. Nguyễn Thị Lan',
     },
     {
       date: '15/02/2026',
       type: 'Chụp X-quang phổi',
       status: 'Đã có kết quả',
-      doctor: 'BS. Trần Văn Minh',
+      doctor: 'Dr. Trần Văn Minh',
     },
   ];
 

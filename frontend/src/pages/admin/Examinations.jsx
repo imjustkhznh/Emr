@@ -3,10 +3,57 @@ import { Stethoscope, Search, Edit2, Trash2, Plus, Eye } from 'lucide-react';
 import { examinationAPI } from '../../services/apiService';
 import { toast } from 'react-toastify';
 
+// Tạo dữ liệu fake 800 hồ sơ khám bệnh
+const generateFakeExaminations = () => {
+  const patientNames = ['Phạm Minh Tuấn', 'Vũ Thị Hương', 'Lê Văn Kiên', 'Hoàng Thị Linh', 'Dương Văn Long', 'Nguyễn Thị Hoa', 'Trần Văn Hùng', 'Phan Thị Xuân', 'Bùi Thị Hoa', 'Cao Văn Sơn'];
+  const diagnoses = ['Cảm cúm', 'Viêm đường hô hấp', 'Tiểu đường', 'Cao huyết áp', 'Mỡ máu cao', 'Loãng xương', 'Viêm khớp', 'Trầm cảm', 'Mất ngủ', 'Béo phì'];
+  const symptoms = [
+    ['Sốt cao', 'Ho', 'Mệt mỏi'],
+    ['Đau đầu', 'Chóng mặt'],
+    ['Khát nước', 'Tiểu tiện nhiều'],
+    ['Đầu tê', 'Hoa mắt'],
+    ['Mệt mỏi', 'Hoa mắt'],
+    ['Đau lưng', 'Đau xương'],
+    ['Đau khớp', 'Sưng'],
+    ['Mất ngủ', 'Lo âu'],
+    ['Mệt mỏi', 'Ăn không ngon'],
+    ['Khó thở', 'Mệt mỏi']
+  ];
+  const treatments = ['Uống thuốc hạ sốt', 'Nghỉ ngơi và uống nước', 'Ăn kiêng, uống thuốc', 'Uống thuốc huyết áp', 'Thay đổi lối sống', 'Bổ sung canxi', 'Liệu pháp vật lý', 'Tư vấn tâm lý', 'Ăn kiêng, tập luyện', 'Giảm cân dần dần'];
+  
+  const examinations = [];
+  
+  for (let i = 1; i <= 800; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - Math.floor(Math.random() * 180));
+    const symptomsIdx = Math.floor(Math.random() * symptoms.length);
+    
+    examinations.push({
+      _id: `examination_${i}`,
+      patientInfo: {
+        name: patientNames[Math.floor(Math.random() * patientNames.length)],
+        age: Math.floor(Math.random() * (80 - 20 + 1)) + 20,
+      },
+      diagnosis: diagnoses[Math.floor(Math.random() * diagnoses.length)],
+      symptoms: symptoms[symptomsIdx],
+      findings: 'Kết quả khám cho thấy bệnh nhân có tình trạng ' + diagnoses[Math.floor(Math.random() * diagnoses.length)],
+      treatment: treatments[Math.floor(Math.random() * treatments.length)],
+      examinationDate: date.toISOString(),
+      notes: 'Tái khám sau 1-2 tuần',
+      status: 'completed'
+    });
+  }
+  return examinations;
+};
+
+const FAKE_EXAMINATIONS = generateFakeExaminations();
+
 const AdminExaminations = () => {
   const [examinations, setExaminations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
   const [selectedExam, setSelectedExam] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -17,13 +64,13 @@ const AdminExaminations = () => {
   const fetchExaminations = async () => {
     try {
       setLoading(true);
-      const response = await examinationAPI.getAll();
-      const data = response?.data?.data || [];
-      setExaminations(data);
+      // Sử dụng dữ liệu fake
+      setExaminations(FAKE_EXAMINATIONS);
+      setCurrentPage(1);
     } catch (error) {
       console.error('Error fetching examinations:', error);
-      toast.error('Không thể tải danh sách khám bệnh');
-      setExaminations([]);
+      // Fallback vẫn dùng dữ liệu fake
+      setExaminations(FAKE_EXAMINATIONS);
     } finally {
       setLoading(false);
     }
@@ -33,6 +80,17 @@ const AdminExaminations = () => {
     exam.patientInfo?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     exam.diagnosis?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Reset page khi search thay đổi
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredExaminations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentExaminations = filteredExaminations.slice(startIndex, endIndex);
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc muốn xóa hồ sơ khám này?')) {
@@ -100,7 +158,7 @@ const AdminExaminations = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredExaminations.map((exam) => (
+                {currentExaminations.map((exam) => (
                   <tr key={exam._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">{exam.patientInfo?.name || 'N/A'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{exam.diagnosis || 'N/A'}</td>
@@ -136,6 +194,68 @@ const AdminExaminations = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && filteredExaminations.length > 0 && (
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Hiển thị {startIndex + 1} đến {Math.min(endIndex, filteredExaminations.length)} trong {filteredExaminations.length} hồ sơ khám
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                Trước
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .map((page) => {
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                            currentPage === page
+                              ? 'bg-purple-600 text-white'
+                              : 'border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      (page === 2 && currentPage > 3) ||
+                      (page === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <span key={page} className="px-2 text-gray-500">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+              </div>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                Sau
+              </button>
+              <div className="ml-4 text-sm text-gray-600">
+                Trang {currentPage} / {totalPages} | Tổng: {filteredExaminations.length} hồ sơ
+              </div>
+            </div>
           </div>
         )}
       </div>

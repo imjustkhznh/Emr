@@ -3,11 +3,50 @@ import { Calendar, Search, Edit2, Trash2, Plus, Clock } from 'lucide-react';
 import { appointmentAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
+// Tạo dữ liệu fake lịch hẹn 3,000 cuộc
+const generateFakeAppointments = () => {
+  const patients = ['Phạm Minh Tuấn', 'Vũ Thị Hương', 'Lê Văn Kiên', 'Hoàng Thị Linh', 'Dương Văn Long', 'Nguyễn Thị Hoa', 'Trần Văn Hùng', 'Phan Thị Xuân', 'Bùi Thị Hoa', 'Cao Văn Sơn'];
+  const doctors = ['Dr. Trần Hữu Bình', 'Dr. Phạm Mạnh Dũng', 'Dr. Vũ Quốc Thái', 'Dr. Đặng Ngọc Hiểu', 'Dr. Bùi Hồng Anh'];
+  const reasons = ['Khám tổng quát', 'Đau đầu', 'Đau bụng', 'Huyết áp cao', 'Tái khám', 'Chủng ngừa', 'Khám sản phụ khoa', 'Khám nha khoa'];
+  const statuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+  
+  const appointments = [];
+  const times = ['09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00'];
+  
+  for (let i = 1; i <= 3000; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() + Math.floor(Math.random() * 90));
+    
+    appointments.push({
+      _id: `appointment_${i}`,
+      patientInfo: {
+        name: patients[Math.floor(Math.random() * patients.length)],
+        age: Math.floor(Math.random() * (70 - 20 + 1)) + 20,
+        phone: `09${Math.floor(Math.random() * 900000000).toString().padStart(8, '0')}`,
+        gender: Math.random() > 0.5 ? 'Nam' : 'Nữ'
+      },
+      doctorInfo: {
+        name: doctors[Math.floor(Math.random() * doctors.length)]
+      },
+      appointmentDate: date.toISOString(),
+      appointmentTime: times[Math.floor(Math.random() * times.length)],
+      reason: reasons[Math.floor(Math.random() * reasons.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      notes: 'Ghi chú từ lịch khám'
+    });
+  }
+  return appointments;
+};
+
+const FAKE_APPOINTMENTS = generateFakeAppointments();
+
 const AdminAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -29,13 +68,12 @@ const AdminAppointments = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const response = await appointmentAPI.getAppointments();
-      const data = response?.data || response?.appointments || [];
-      setAppointments(data);
+      // Sử dụng dữ liệu fake
+      setAppointments(FAKE_APPOINTMENTS);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      toast.error('Không thể tải danh sách cuộc hẹn');
-      setAppointments([]);
+      // Fallback vẫn dùng dữ liệu fake
+      setAppointments(FAKE_APPOINTMENTS);
     } finally {
       setLoading(false);
     }
@@ -43,15 +81,7 @@ const AdminAppointments = () => {
 
   const fetchPatientsAndDoctors = async () => {
     try {
-      // Fetch patients từ patients collection
-      const patientsRes = await fetch('http://localhost:3001/api/patients');
-      const patientsData = await patientsRes.json();
-      setPatients(patientsData?.data || patientsData || []);
-
-      // Fetch doctors
-      const doctorsRes = await fetch('http://localhost:3001/api/doctors');
-      const doctorsData = await doctorsRes.json();
-      setDoctors(doctorsData?.data || doctorsData || []);
+      // Không cần fetch thực, dữ liệu đã có trong fake data
     } catch (error) {
       console.error('Error fetching patients/doctors:', error);
     }
@@ -65,6 +95,12 @@ const AdminAppointments = () => {
     const matchStatus = filterStatus === 'all' || apt.status === filterStatus;
     return matchSearch && matchStatus;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentAppointments = filteredAppointments.slice(startIndex, endIndex);
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc muốn xóa cuộc hẹn này?')) {
@@ -243,7 +279,7 @@ const AdminAppointments = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredAppointments.map((apt) => (
+                {currentAppointments.map((apt) => (
                   <tr key={apt._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">{apt.patientInfo?.name || 'N/A'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{apt.doctorInfo?.name || 'N/A'}</td>
@@ -277,6 +313,53 @@ const AdminAppointments = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && filteredAppointments.length > 0 && (
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Hiển thị {startIndex + 1} đến {Math.min(endIndex, filteredAppointments.length)} trong {filteredAppointments.length} cuộc hẹn
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                Trước
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    const distance = Math.abs(page - currentPage);
+                    return distance <= 2 || page === 1 || page === totalPages;
+                  })
+                  .map((page, idx, arr) => (
+                    <React.Fragment key={page}>
+                      {idx > 0 && arr[idx - 1] !== page - 1 && <span className="px-2">...</span>}
+                      <button
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                          currentPage === page
+                            ? 'bg-orange-600 text-white'
+                            : 'border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    </React.Fragment>
+                  ))}
+              </div>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                Sau
+              </button>
+            </div>
           </div>
         )}
       </div>

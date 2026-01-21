@@ -4,7 +4,7 @@ import { Download, Calendar, Pill, AlertCircle } from 'lucide-react';
 const samplePatientPrescriptions = [
   {
     id: '1',
-    doctorName: 'BS. Trần Văn A',
+    doctorName: 'Dr. Trần Văn A',
     specialty: 'Bác sĩ Nội khoa',
     medications: [
       { name: 'Paracetamol 500mg', quantity: 20, dosage: '2 viên/lần - 3 lần/ngày', duration: '5 ngày' },
@@ -18,7 +18,7 @@ const samplePatientPrescriptions = [
   },
   {
     id: '2',
-    doctorName: 'BS. Nguyễn Thị B',
+    doctorName: 'Dr. Nguyễn Thị B',
     specialty: 'Bác sĩ Da liễu',
     medications: [
       { name: 'Vitamin C 500mg', quantity: 30, dosage: '1 viên/lần - 1 lần/ngày', duration: '30 ngày' },
@@ -32,7 +32,7 @@ const samplePatientPrescriptions = [
   },
   {
     id: '3',
-    doctorName: 'BS. Lê Văn C',
+    doctorName: 'Dr. Lê Văn C',
     specialty: 'Bác sĩ Tiêu hóa',
     medications: [
       { name: 'Omeprazole 20mg', quantity: 28, dosage: '1 viên/lần - 1 lần/ngày', duration: '4 tuần' },

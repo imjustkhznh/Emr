@@ -1,449 +1,311 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  CalendarCheck,
+  Calendar,
+  Clock,
+  User,
   FileText,
-  Bell,
   CreditCard,
-  MessageCircle,
-  Star,
+  MessageSquare,
+  Pill,
+  Heart,
+  ArrowRight,
+  ChevronRight,
   Stethoscope,
-  HeartPulse,
-  Brain,
-  ShieldCheck,
-  UserCircle2,
+  TrendingUp,
+  Award,
+  Users,
+  Bell,
+  MapPin,
   Phone,
   Activity,
+  Zap,
+  Shield,
+  CheckCircle,
 } from 'lucide-react';
 
 const PatientHome = () => {
+  const [stats, setStats] = useState({
+    doctors: 8,
+    patients: 5,
+    rating: '4.8/5',
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [doctorsRes, patientsRes] = await Promise.all([
+          fetch('http://localhost:8080/api/doctors'),
+          fetch('http://localhost:8080/api/patients'),
+        ]);
+
+        const doctorsData = await doctorsRes.json();
+        const patientsData = await patientsRes.json();
+
+        setStats({
+          doctors: doctorsData.length || 8,
+          patients: patientsData.length || 5,
+          rating: '4.8/5',
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const appointments = [
+    {
+      id: 1,
+      doctor: 'TS. Phạm Văn Thắng',
+      specialty: 'Nội tổng quát',
+      date: '22/01/2026',
+      time: '09:00 AM',
+    },
+    {
+      id: 2,
+      doctor: 'BS.CKI. Đặng Thị Hương',
+      specialty: 'Tim mạch',
+      date: '25/01/2026',
+      time: '02:30 PM',
+    },
+  ];
+
+  const services = [
+    { icon: <Users className="w-8 h-8" />, title: 'Khám ngoại trú', desc: 'Dịch vụ khám bệnh chuyên nghiệp' },
+    { icon: <Activity className="w-8 h-8" />, title: 'Chẩn đoán', desc: 'Xét nghiệm và chụp ảnh' },
+    { icon: <Pill className="w-8 h-8" />, title: 'Điều trị', desc: 'Phương pháp điều trị hiện đại' },
+    { icon: <Shield className="w-8 h-8" />, title: 'Chăm sóc', desc: 'Theo dõi sức khỏe toàn diện' },
+    { icon: <Zap className="w-8 h-8" />, title: 'Cấp cứu', desc: '24/7 Dịch vụ cấp cứu' },
+    { icon: <Heart className="w-8 h-8" />, title: 'Tư vấn', desc: 'Hỗ trợ và tư vấn y tế' },
+  ];
+
+  const features = [
+    { icon: <Stethoscope className="w-6 h-6" />, label: 'Bác sĩ chuyên nghiệp' },
+    { icon: <Shield className="w-6 h-6" />, label: 'Kỹ thuật tiên tiến' },
+    { icon: <Clock className="w-6 h-6" />, label: 'Phục vụ 24/7' },
+    { icon: <CheckCircle className="w-6 h-6" />, label: 'Chất lượng đảm bảo' },
+  ];
+
   return (
-    <div className="bg-gradient-to-b from-primary-50 via-white to-secondary-50">
-      {/* Hero section */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 py-10 lg:py-14 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <div className="space-y-5">
-          <p className="inline-flex items-center px-3 py-1 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold">
-            Chăm sóc sức khỏe cho gia đình bạn
-          </p>
-          <h1 className="text-3xl lg:text-4xl font-bold text-secondary-900 leading-snug">
-            Đặt lịch khám, xét nghiệm{' '}
-            <span className="text-primary-600">nhanh chóng và an toàn</span> ngay tại nhà.
-          </h1>
-          <p className="text-sm lg:text-base text-secondary-600 max-w-xl">
-            Hệ thống MediCare EMR giúp bạn quản lý lịch khám, xem kết quả xét nghiệm và lưu trữ hồ sơ sức
-            khỏe mọi lúc, mọi nơi.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              to="/patient/appointments"
-              className="px-5 py-2.5 rounded-full bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700"
-            >
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full -mr-48 -mt-48"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-20 sm:py-24">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-4">Chào mừng trở lại! 👋</h1>
+            <p className="text-xl text-blue-100 mb-8">Chúng tôi luôn sẵn sàng chăm sóc sức khỏe của bạn với dịch vụ chuyên nghiệp và tận tâm</p>
+            <Link to="/patient/appointments" className="inline-flex items-center gap-2 bg-white text-blue-600 hover:bg-gray-50 px-8 py-3 rounded-lg font-semibold transition-colors">
               Đặt lịch khám ngay
+              <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link
-              to="/patient/results"
-              className="px-5 py-2.5 rounded-full border border-primary-200 text-primary-700 text-sm font-semibold bg-white hover:bg-primary-50"
-            >
-              Xem kết quả xét nghiệm
-            </Link>
-          </div>
-          <div className="flex flex-wrap gap-6 pt-2 text-xs text-secondary-600">
-            <div>
-              <p className="font-semibold text-secondary-900">24/7</p>
-              <p>Đặt lịch online</p>
-            </div>
-            <div>
-              <p className="font-semibold text-secondary-900">100% bảo mật</p>
-              <p>Hồ sơ sức khỏe</p>
-            </div>
-            <div>
-              <p className="font-semibold text-secondary-900">Hơn 200+</p>
-              <p>Bác sĩ và chuyên gia</p>
-            </div>
           </div>
         </div>
+      </section>
 
-        {/* Illustration card */}
-        <div className="relative">
-          <div className="rounded-3xl bg-gradient-to-tr from-primary-500 via-primary-400 to-primary-300 text-white p-6 lg:p-7 shadow-xl overflow-hidden">
-            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
-            <div className="relative space-y-4">
-              <p className="text-lg font-semibold">Ưu đãi tháng này</p>
-              <p className="text-2xl font-bold leading-snug">
-                Gói khám tổng quát cho phụ nữ <br />
-                <span className="text-yellow-200">Ưu đãi đến 30%</span>
-              </p>
-              <p className="text-xs text-primary-50 max-w-xs">
-                Phát hiện sớm các bệnh lý thường gặp, chủ động bảo vệ sức khỏe bản thân và gia đình.
-              </p>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="rounded-2xl bg-white/10 p-3 backdrop-blur">
-                  <p className="font-semibold">Khám tại nhà</p>
-                  <p className="text-primary-50 mt-1">Lấy mẫu xét nghiệm tận nơi</p>
+      {/* Services Grid */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Dịch vụ của chúng tôi</h2>
+          <p className="text-gray-600 text-lg">Cung cấp các dịch vụ y tế chất lượng cao với công nghệ tiên tiến</p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          {services.map((service, idx) => (
+            <div key={idx} className="group bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all">
+              <div className="text-blue-600 mb-4 group-hover:scale-110 transition-transform">{service.icon}</div>
+              <h3 className="font-bold text-gray-900 mb-2">{service.title}</h3>
+              <p className="text-gray-600 text-sm">{service.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Appointments */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Lịch khám sắp tới
+                </h2>
+              </div>
+
+              <div className="divide-y divide-gray-200">
+                {appointments.length > 0 ? (
+                  appointments.map((apt) => (
+                    <div key={apt.id} className="p-6 hover:bg-gray-50 transition-colors flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{apt.doctor}</h3>
+                        <p className="text-sm text-blue-600 mt-1">{apt.specialty}</p>
+                        <div className="flex gap-4 mt-3 text-sm text-gray-600">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4" />
+                            {apt.date}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" />
+                            {apt.time}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-green-600 bg-green-100 px-3 py-1.5 rounded-full">✓ Xác nhận</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-12 text-center">
+                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">Chưa có lịch khám</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Booking Form */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Stethoscope className="w-5 h-5 text-blue-600" />
+                Đặt lịch khám mới
+              </h2>
+
+              <form className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Chuyên khoa</label>
+                    <select className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900">
+                      <option>Chọn chuyên khoa</option>
+                      <option>Nội tổng quát</option>
+                      <option>Tim mạch</option>
+                      <option>Nhi khoa</option>
+                      <option>Sản phụ khoa</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ngày khám</label>
+                    <input type="date" className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900" />
+                  </div>
                 </div>
-                <div className="rounded-2xl bg-white/10 p-3 backdrop-blur">
-                  <p className="font-semibold">Kết quả online</p>
-                  <p className="text-primary-50 mt-1">Nhận kết quả trên ứng dụng</p>
+                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Tiếp tục đặt lịch
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Health Status */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Heart className="w-5 h-5 text-red-500" />
+                Tình trạng sức khỏe
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <span className="text-sm font-medium text-gray-700">Huyết áp</span>
+                  <span className="font-bold text-blue-600">120/80</span>
+                </div>
+                <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200">
+                  <span className="text-sm font-medium text-gray-700">BMI</span>
+                  <span className="font-bold text-green-600">22.5</span>
+                </div>
+                <div className="flex justify-between items-center p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <span className="text-sm font-medium text-gray-700">Nhịp tim</span>
+                  <span className="font-bold text-orange-600">72 bpm</span>
                 </div>
               </div>
-              <button className="mt-1 inline-flex items-center px-4 py-2 rounded-full bg-white text-primary-600 text-xs font-semibold hover:bg-primary-50">
-                Tư vấn miễn phí
+              <Link to="/patient/profile" className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors text-center">
+                Cập nhật hồ sơ
+              </Link>
+            </div>
+
+            {/* Health Tip */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6">
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Pill className="w-5 h-5 text-green-600" />
+                Mẹo sức khỏe
+              </h3>
+              <p className="text-sm text-gray-700 leading-relaxed mb-3">
+                Uống 8 cốc nước mỗi ngày để duy trì cân bằng nước cho cơ thể. Điều này giúp tăng cường miễn dịch.
+              </p>
+              <button className="text-sm font-semibold text-green-600 hover:text-green-700 flex items-center gap-1">
+                Xem thêm
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Quick booking with inline form */}
-      <section className="bg-white border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          <div className="lg:col-span-2 rounded-2xl border border-primary-100 bg-primary-50/60 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-xs text-primary-700 font-semibold uppercase tracking-wide">
-                  ĐẶT LỊCH KHÁM NHANH
-                </p>
-                <p className="text-sm text-secondary-700">
-                  Chọn chuyên khoa, thời gian và để lại lý do, chúng tôi sẽ xác nhận sớm nhất.
-                </p>
-              </div>
-              <Stethoscope className="hidden md:block w-8 h-8 text-primary-500" />
-            </div>
-            <form className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
-              <div className="md:col-span-1">
-                <label className="block text-secondary-600 mb-1">Chuyên khoa</label>
-                <select className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                  <option>Nội tổng quát</option>
-                  <option>Tim mạch</option>
-                  <option>Sản phụ khoa</option>
-                  <option>Nhi khoa</option>
-                </select>
-              </div>
-              <div className="md:col-span-1">
-                <label className="block text-secondary-600 mb-1">Ngày khám</label>
-                <input
-                  type="date"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="block text-secondary-600 mb-1">Khung giờ</label>
-                <select className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                  <option>08:00 - 09:00</option>
-                  <option>09:00 - 10:00</option>
-                  <option>14:00 - 15:00</option>
-                </select>
-              </div>
-              <div className="md:col-span-1 flex md:flex-col gap-2 justify-end md:justify-start">
-                <button
-                  type="submit"
-                  className="w-full md:w-auto px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700"
-                >
-                  Đặt lịch ngay
-                </button>
-                <Link
-                  to="/patient/appointments"
-                  className="w-full md:w-auto px-4 py-2 rounded-lg border border-primary-200 text-primary-700 text-sm text-center hover:bg-primary-50"
-                >
-                  Xem chi tiết
-                </Link>
-              </div>
-              <div className="md:col-span-4">
-                <label className="block text-secondary-600 mb-1">Lý do khám (tuỳ chọn)</label>
-                <input
-                  type="text"
-                  placeholder="Ví dụ: khám sức khỏe định kỳ, đau đầu kéo dài..."
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-            </form>
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <Link
-              to="/patient/results"
-              className="rounded-2xl border border-primary-100 bg-primary-50/40 p-4 flex gap-3 items-center hover:shadow-sm"
-            >
-              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-primary-600">
-                <FileText className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-semibold text-secondary-900">Xem kết quả xét nghiệm</p>
-                <p className="text-secondary-500 text-xs">
-                  Tra cứu nhanh kết quả xét nghiệm và chẩn đoán hình ảnh.
-                </p>
-              </div>
-            </Link>
-            <Link
-              to="/patient/visits"
-              className="rounded-2xl border border-primary-100 bg-primary-50/30 p-4 flex gap-3 items-center hover:shadow-sm"
-            >
-              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-primary-600">
-                <CalendarCheck className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-semibold text-secondary-900">Lịch sử khám bệnh</p>
-                <p className="text-secondary-500 text-xs">
-                  Xem lại toàn bộ các lần khám và chẩn đoán trước đây.
-                </p>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature grid */}
-      <section className="bg-secondary-50 border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <Link
-            to="/patient/prescriptions"
-            className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm flex gap-3 items-start"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600">
-              <FileText className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-semibold text-secondary-900 mb-1">Đơn thuốc &amp; điều trị</p>
-              <p className="text-secondary-600 text-xs">
-                Xem lại đơn thuốc, liều dùng và hướng dẫn điều trị chi tiết.
-              </p>
-            </div>
-          </Link>
-          <Link
-            to="/patient/payments"
-            className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm flex gap-3 items-start"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600">
-              <CreditCard className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-semibold text-secondary-900 mb-1">Thanh toán viện phí</p>
-              <p className="text-secondary-600 text-xs">
-                Theo dõi hóa đơn, thanh toán trực tuyến nhanh chóng và an toàn.
-              </p>
-            </div>
-          </Link>
-          <Link
-            to="/patient/notifications"
-            className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm flex gap-3 items-start"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600">
-              <Bell className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-semibold text-secondary-900 mb-1">Thông báo &amp; nhắc lịch</p>
-              <p className="text-secondary-600 text-xs">
-                Không bỏ lỡ lịch khám, kết quả mới hay thông báo quan trọng từ bệnh viện.
-              </p>
-            </div>
-          </Link>
-          <Link
-            to="/patient/telemedicine"
-            className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm flex gap-3 items-start"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600">
-              <MessageCircle className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-semibold text-secondary-900 mb-1">Tư vấn trực tuyến</p>
-              <p className="text-secondary-600 text-xs">
-                Đặt lịch tư vấn qua video/voice/chat với bác sĩ ngay tại nhà.
-              </p>
-            </div>
-          </Link>
-          <Link
-            to="/patient/reviews"
-            className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm flex gap-3 items-start"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600">
-              <Star className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-semibold text-secondary-900 mb-1">Đánh giá dịch vụ</p>
-              <p className="text-secondary-600 text-xs">
-                Gửi phản hồi về chất lượng khám chữa bệnh và trải nghiệm của bạn.
-              </p>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* Articles preview */}
-      <section className="bg-white border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-secondary-900">Bài viết nổi bật</h2>
-            <Link
-              to="/patient/articles"
-              className="text-sm text-primary-700 font-semibold hover:text-primary-800"
-            >
-              Xem tất cả bài viết
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-sm">
-            <div className="bg-secondary-50 rounded-2xl border border-secondary-100 p-4">
-              <p className="text-[11px] text-primary-700 font-semibold mb-1">Sức khỏe phụ nữ</p>
-              <p className="font-semibold text-secondary-900 mb-1">
-                Khám sức khỏe định kỳ giúp phát hiện bệnh sớm
-              </p>
-              <p className="text-xs text-secondary-600">
-                Cơ thể phụ nữ thay đổi theo từng giai đoạn, việc tầm soát sớm giúp bảo vệ sức khỏe
-                lâu dài...
-              </p>
-            </div>
-            <div className="bg-secondary-50 rounded-2xl border border-secondary-100 p-4">
-              <p className="text-[11px] text-primary-700 font-semibold mb-1">Dinh dưỡng</p>
-              <p className="font-semibold text-secondary-900 mb-1">
-                Thực đơn lành mạnh cho gia đình bận rộn
-              </p>
-              <p className="text-xs text-secondary-600">
-                Gợi ý các nhóm thực phẩm giúp giữ năng lượng cả ngày mà vẫn tốt cho tim mạch...
-              </p>
-            </div>
-            <div className="bg-secondary-50 rounded-2xl border border-secondary-100 p-4">
-              <p className="text-[11px] text-primary-700 font-semibold mb-1">Tim mạch</p>
-              <p className="font-semibold text-secondary-900 mb-1">
-                5 thói quen tốt cho người tăng huyết áp
-              </p>
-              <p className="text-xs text-secondary-600">
-                Tập thể dục nhẹ nhàng, ngủ đủ giấc và kiểm soát cân nặng là chìa khóa kiểm soát
-                huyết áp...
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Doctor team */}
-      <section className="bg-secondary-50 border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
-          <h2 className="text-2xl font-semibold text-secondary-900 mb-6">Đội ngũ chuyên gia y tế</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center text-sm">
-            {[
-              { name: 'BSCKII. Nguyễn Quốc Dũng', specialty: 'Chẩn đoán hình ảnh' },
-              { name: 'PGS.TS. Đoàn Hữu Nghị', specialty: 'Tim mạch can thiệp' },
-              { name: 'TS.BS. Lê Chính Đại', specialty: 'Ung bướu' },
-            ].map((d) => (
-              <div
-                key={d.name}
-                className="bg-white rounded-3xl border border-gray-100 px-6 pt-8 pb-6 flex flex-col items-center gap-3 shadow-sm"
-              >
-                <div className="w-32 h-32 rounded-full bg-primary-50 flex items-center justify-center mb-1">
-                  <UserCircle2 className="w-16 h-16 text-primary-400" />
+            {/* Contact Info */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-blue-600" />
+                Liên hệ
+              </h3>
+              <div className="space-y-3">
+                <div className="flex gap-3 text-sm">
+                  <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <span className="text-gray-700">1900 123 456</span>
                 </div>
-                <div>
-                  <p className="font-semibold text-secondary-900">{d.name}</p>
-                  <p className="text-xs text-primary-700 mt-1">Chuyên khoa: {d.specialty}</p>
-                </div>
-                <button className="mt-1 inline-flex items-center gap-1 px-4 py-1.5 rounded-full border border-primary-200 text-primary-700 text-xs font-semibold hover:bg-primary-50">
-                  <Phone className="w-3 h-3" />
-                  Đặt lịch với bác sĩ
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Specialties grid */}
-      <section className="bg-white border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
-          <h2 className="text-2xl font-semibold text-secondary-900 mb-6">
-            Các chuyên khoa y tế tại MediCare EMR
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
-            {[
-              { icon: <HeartPulse className="w-6 h-6" />, label: 'Tim mạch' },
-              { icon: <Brain className="w-6 h-6" />, label: 'Thần kinh' },
-              { icon: <Stethoscope className="w-6 h-6" />, label: 'Nội tổng quát' },
-              { icon: <ShieldCheck className="w-6 h-6" />, label: 'Miễn dịch - Dị ứng' },
-              { icon: <UserCircle2 className="w-6 h-6" />, label: 'Nhi khoa' },
-              { icon: <Activity className="w-6 h-6" />, label: 'Nội tiết - Đái tháo đường' },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="border border-primary-50 bg-primary-50/60 rounded-2xl px-4 py-5 flex flex-col items-start gap-3 hover:bg-primary-50"
-              >
-                <div className="text-primary-600">{s.icon}</div>
-                <p className="font-semibold text-secondary-900 text-sm">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Membership / insurance form */}
-      <section className="bg-secondary-50 border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center text-sm">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-secondary-900">
-              Ưu đãi thành viên &amp; đăng ký bảo hiểm
-            </h2>
-            <ul className="space-y-2 text-secondary-700 text-sm">
-              <li className="flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-primary-500 mt-0.5" />
-                <span>Theo dõi lịch sử khám chữa bệnh và quyền lợi bảo hiểm y tế.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-primary-500 mt-0.5" />
-                <span>Đăng ký các gói khám, tầm soát sức khỏe định kỳ với mức giá ưu đãi.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-primary-500 mt-0.5" />
-                <span>Nhận thông báo quyền lợi mới, chương trình chăm sóc khách hàng thân thiết.</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-sm">
-            <p className="text-secondary-700 text-sm">
-              Đăng ký email và thông tin bảo hiểm để nhận tư vấn chi tiết từ đội ngũ MediCare EMR.
-            </p>
-            <form className="space-y-3 text-sm">
-              <div>
-                <label className="block text-secondary-600 mb-1">Họ và tên</label>
-                <input
-                  type="text"
-                  placeholder="Nhập họ và tên của bạn"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-secondary-600 mb-1">Email</label>
-                  <input
-                    type="email"
-                    placeholder="email@example.com"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-secondary-600 mb-1">Số điện thoại</label>
-                  <input
-                    type="tel"
-                    placeholder="09xx xxx xxx"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
+                <div className="flex gap-3 text-sm">
+                  <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <span className="text-gray-700">123 Đường Nguyễn Huệ, Q.1, TP.HCM</span>
                 </div>
               </div>
-              <div>
-                <label className="block text-secondary-600 mb-1">Đơn vị bảo hiểm</label>
-                <select className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                  <option>Bảo hiểm y tế nhà nước</option>
-                  <option>Bảo hiểm tư nhân</option>
-                  <option>Chưa có bảo hiểm</option>
-                </select>
-              </div>
-              <button
-                type="submit"
-                className="w-full px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700"
-              >
-                Đăng ký tư vấn bảo hiểm
-              </button>
-            </form>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-400 py-12">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Heart className="w-6 h-6 text-blue-500" />
+                <span className="font-bold text-white">HMS</span>
+              </div>
+              <p className="text-sm">Hệ thống quản lý bệnh viện hiện đại</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-4">Dịch vụ</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-white">Khám bệnh</a></li>
+                <li><a href="#" className="hover:text-white">Chẩn đoán</a></li>
+                <li><a href="#" className="hover:text-white">Điều trị</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-4">Thông tin</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-white">Về chúng tôi</a></li>
+                <li><a href="#" className="hover:text-white">Chính sách</a></li>
+                <li><a href="#" className="hover:text-white">Điều khoản</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-4">Kết nối</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-white">Facebook</a></li>
+                <li><a href="#" className="hover:text-white">Twitter</a></li>
+                <li><a href="#" className="hover:text-white">LinkedIn</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 pt-8 text-center text-sm">
+            <p>&copy; 2026 HMS. Tất cả quyền được bảo lưu.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

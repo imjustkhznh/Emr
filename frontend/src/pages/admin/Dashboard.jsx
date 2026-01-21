@@ -3,6 +3,87 @@ import { Users, Calendar, FileText, Stethoscope, AlertCircle, CheckCircle, Trend
 import { userAPI, appointmentAPI, patientsAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
+// Dữ liệu fake 45 bác sĩ
+const FAKE_DOCTORS_45 = [
+  { _id: '1', name: 'Dr. Trần Hữu Bình', email: 'tranhuubinh@hospital.com', phone: '0901111111', specialty: 'Tim mạch', experience: 15 },
+  { _id: '2', name: 'Dr. Phạm Mạnh Dũng', email: 'phammainhdung@hospital.com', phone: '0902222222', specialty: 'Nhi khoa', experience: 12 },
+  { _id: '3', name: 'Dr. Vũ Quốc Thái', email: 'vuquocthai@hospital.com', phone: '0903333333', specialty: 'Ngoại khoa', experience: 18 },
+  { _id: '4', name: 'Dr. Đặng Ngọc Hiểu', email: 'dangnochieu@hospital.com', phone: '0904444444', specialty: 'Da liễu', experience: 10 },
+  { _id: '5', name: 'Dr. Bùi Hồng Anh', email: 'buihonganh@hospital.com', phone: '0905555555', specialty: 'Mắt', experience: 14 },
+  { _id: '6', name: 'Dr. Nguyễn Văn Hùng', email: 'nguyenvanhung@hospital.com', phone: '0906666666', specialty: 'Nha khoa', experience: 11 },
+  { _id: '7', name: 'Dr. Hoàng Thị Mai', email: 'hoangthimai@hospital.com', phone: '0907777777', specialty: 'Sản phụ khoa', experience: 16 },
+  { _id: '8', name: 'Dr. Lý Văn Chung', email: 'lyvanching@hospital.com', phone: '0908888888', specialty: 'Hô hấp', experience: 13 },
+  { _id: '9', name: 'Dr. Cao Thị Liên', email: 'caothilien@hospital.com', phone: '0909999999', specialty: 'Tâm lý', experience: 9 },
+  { _id: '10', name: 'Dr. Dương Văn Long', email: 'duongvanlong@hospital.com', phone: '0910101010', specialty: 'Tiêu hóa', experience: 17 },
+  { _id: '11', name: 'Dr. Trần Thị Hương', email: 'tranthihuong@hospital.com', phone: '0911111111', specialty: 'Thần kinh', experience: 14 },
+  { _id: '12', name: 'Dr. Lê Văn Kiên', email: 'levankien@hospital.com', phone: '0912121212', specialty: 'Bỏng thương tích', experience: 8 },
+  { _id: '13', name: 'Dr. Phan Minh Tuấn', email: 'phanminhttuan@hospital.com', phone: '0913131313', specialty: 'Xương khớp', experience: 19 },
+  { _id: '14', name: 'Dr. Võ Thị Hạnh', email: 'vothihanh@hospital.com', phone: '0914141414', specialty: 'Ung bướu', experience: 12 },
+  { _id: '15', name: 'Dr. Huỳnh Văn Sơn', email: 'huyunhvanson@hospital.com', phone: '0915151515', specialty: 'Tai mũi họng', experience: 11 },
+  { _id: '16', name: 'Dr. Tô Thị Xuân', email: 'tothixuan@hospital.com', phone: '0916161616', specialty: 'Phòng khám đa khoa', experience: 7 },
+  { _id: '17', name: 'Dr. Kiều Minh Hạo', email: 'kieuminhhao@hospital.com', phone: '0917171717', specialty: 'Tim mạch', experience: 16 },
+  { _id: '18', name: 'Dr. Đinh Thị Hồng', email: 'dinhthihong@hospital.com', phone: '0918181818', specialty: 'Nhi khoa', experience: 13 },
+  { _id: '19', name: 'Dr. Bạch Văn Hải', email: 'bauvamhai@hospital.com', phone: '0919191919', specialty: 'Ngoại khoa', experience: 20 },
+  { _id: '20', name: 'Dr. Sơn Thị Linh', email: 'sonthilinh@hospital.com', phone: '0920202020', specialty: 'Phụ khoa', experience: 15 },
+  { _id: '21', name: 'Dr. Vương Văn Tú', email: 'vuongvantu@hospital.com', phone: '0921212121', specialty: 'Chỉnh hình', experience: 10 },
+  { _id: '22', name: 'Dr. Hồ Thị Thanh', email: 'hothithanh@hospital.com', phone: '0922222222', specialty: 'Hô hấp', experience: 12 },
+  { _id: '23', name: 'Dr. Tạ Văn Đức', email: 'tavanduc@hospital.com', phone: '0923232323', specialty: 'Tiêu hóa', experience: 14 },
+  { _id: '24', name: 'Dr. Giang Thị Huỳnh', email: 'giangthihuynh@hospital.com', phone: '0924242424', specialty: 'Thần kinh', experience: 18 },
+  { _id: '25', name: 'Dr. Trịnh Văn Hùng', email: 'trinvanhung@hospital.com', phone: '0925252525', specialty: 'Nha khoa', experience: 11 },
+  { _id: '26', name: 'Dr. Lai Thị Ngọc', email: 'laithingoc@hospital.com', phone: '0926262626', specialty: 'Da liễu', experience: 9 },
+  { _id: '27', name: 'Dr. Bùi Văn Hùng', email: 'buivanhung@hospital.com', phone: '0927272727', specialty: 'Mắt', experience: 17 },
+  { _id: '28', name: 'Dr. Chế Thị Huyền', email: 'chethihuyyen@hospital.com', phone: '0928282828', specialty: 'Tâm lý', experience: 8 },
+  { _id: '29', name: 'Dr. Đỗ Văn Tâm', email: 'dovantam@hospital.com', phone: '0929292929', specialty: 'Bỏng thương tích', experience: 13 },
+  { _id: '30', name: 'Dr. Phạm Thị Yên', email: 'phamthiyen@hospital.com', phone: '0930303030', specialty: 'Sản phụ khoa', experience: 15 },
+  { _id: '31', name: 'Dr. Trương Văn Tịnh', email: 'truongvantinh@hospital.com', phone: '0931313131', specialty: 'Xương khớp', experience: 12 },
+  { _id: '32', name: 'Dr. Võ Thị Tuyết', email: 'vothituyet@hospital.com', phone: '0932323232', specialty: 'Ung bướu', experience: 19 },
+  { _id: '33', name: 'Dr. Lương Văn Sáng', email: 'luongvansang@hospital.com', phone: '0933333333', specialty: 'Tai mũi họng', experience: 10 },
+  { _id: '34', name: 'Dr. Quách Thị Hương', email: 'quachthihuong@hospital.com', phone: '0934343434', specialty: 'Phòng khám đa khoa', experience: 11 },
+  { _id: '35', name: 'Dr. Hà Văn Định', email: 'havandinh@hospital.com', phone: '0935353535', specialty: 'Tim mạch', experience: 16 },
+  { _id: '36', name: 'Dr. Dương Thị Kiều', email: 'duongthikieu@hospital.com', phone: '0936363636', specialty: 'Nhi khoa', experience: 14 },
+  { _id: '37', name: 'Dr. Trịnh Văn Dũng', email: 'trinvandung@hospital.com', phone: '0937373737', specialty: 'Ngoại khoa', experience: 18 },
+  { _id: '38', name: 'Dr. Quý Thị Hồng', email: 'quythihong@hospital.com', phone: '0938383838', specialty: 'Da liễu', experience: 13 },
+  { _id: '39', name: 'Dr. Kiên Văn Minh', email: 'kienvanminh@hospital.com', phone: '0939393939', specialty: 'Mắt', experience: 12 },
+  { _id: '40', name: 'Dr. Tuyến Thị Hạnh', email: 'tuyenthihanh@hospital.com', phone: '0940404040', specialty: 'Nha khoa', experience: 10 },
+  { _id: '41', name: 'Dr. Vân Văn Hải', email: 'vanvamhai@hospital.com', phone: '0941414141', specialty: 'Sản phụ khoa', experience: 17 },
+  { _id: '42', name: 'Dr. Lý Thị Khánh', email: 'lyithikhanh@hospital.com', phone: '0942424242', specialty: 'Hô hấp', experience: 11 },
+  { _id: '43', name: 'Dr. Hòa Văn Tân', email: 'hoavantan@hospital.com', phone: '0943434343', specialty: 'Tiêu hóa', experience: 15 },
+  { _id: '44', name: 'Dr. Huệ Thị Sương', email: 'hueithisuong@hospital.com', phone: '0944444444', specialty: 'Thần kinh', experience: 13 },
+  { _id: '45', name: 'Dr. Năng Văn Thắng', email: 'nangvanthang@hospital.com', phone: '0945454545', specialty: 'Chỉnh hình', experience: 16 }
+];
+
+// Dữ liệu fake
+const FAKE_STATS = {
+  totalPatients: 1250,
+  totalDoctors: 45,
+  todayAppointments: 18,
+  pendingAppointments: 12,
+  totalRevenue: 125500000,
+  newPatients: 23
+};
+
+const FAKE_APPOINTMENTS = [
+  { _id: '1', patientName: 'Phạm Minh Tuấn', doctorName: 'Dr. Trần Hữu Bình', appointmentDate: new Date().toISOString(), status: 'confirmed', time: '09:00' },
+  { _id: '2', patientName: 'Vũ Thị Hương', doctorName: 'Dr. Phạm Mạnh Dũng', appointmentDate: new Date().toISOString(), status: 'pending', time: '10:30' },
+  { _id: '3', patientName: 'Lê Văn Kiên', doctorName: 'Dr. Vũ Quốc Thái', appointmentDate: new Date().toISOString(), status: 'completed', time: '14:00' },
+  { _id: '4', patientName: 'Hoàng Thị Linh', doctorName: 'Dr. Đặng Ngọc Hiểu', appointmentDate: new Date().toISOString(), status: 'confirmed', time: '15:30' },
+  { _id: '5', patientName: 'Dương Văn Long', doctorName: 'Dr. Bùi Hồng Anh', appointmentDate: new Date().toISOString(), status: 'pending', time: '11:00' }
+];
+
+const FAKE_PATIENTS = [
+  { _id: '1', name: 'Phạm Minh Tuấn', email: 'phamminhtuan@gmail.com', phone: '0912345678', dob: '1990-05-15', gender: 'Nam' },
+  { _id: '2', name: 'Vũ Thị Hương', email: 'vuthihuong@gmail.com', phone: '0987654321', dob: '1995-08-20', gender: 'Nữ' },
+  { _id: '3', name: 'Lê Văn Kiên', email: 'levankien@gmail.com', phone: '0923456789', dob: '1988-03-10', gender: 'Nam' },
+];
+
+const FAKE_DOCTORS = [
+  { _id: '1', name: 'Dr. Trần Hữu Bình', email: 'tranhuubinh@hospital.com', specialty: 'Tim mạch', phone: '0901111111', experience: 15 },
+  { _id: '2', name: 'Dr. Phạm Mạnh Dũng', email: 'phammainhdung@hospital.com', specialty: 'Nhi khoa', phone: '0902222222', experience: 12 },
+  { _id: '3', name: 'Dr. Vũ Quốc Thái', email: 'vuquocthai@hospital.com', specialty: 'Ngoại khoa', phone: '0903333333', experience: 18 },
+  { _id: '4', name: 'Dr. Đặng Ngọc Hiểu', email: 'dangnochieu@hospital.com', specialty: 'Da liễu', phone: '0904444444', experience: 10 },
+  { _id: '5', name: 'Dr. Bùi Hồng Anh', email: 'buihonganh@hospital.com', specialty: 'Mắt', phone: '0905555555', experience: 14 }
+];
+
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [appointments, setAppointments] = useState([]);
@@ -15,53 +96,20 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
-        const headers = {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        };
-
-        // Fetch appointments
-        const appointmentsRes = await appointmentAPI.getAppointments();
-        const appointmentsData = appointmentsRes?.data || appointmentsRes?.appointments || [];
-        setAppointments(appointmentsData);
-
-        // Fetch patients
-        const patientsRes = await patientsAPI.getPatients();
-        const patientsData = patientsRes?.data || patientsRes?.patients || [];
-        setPatients(patientsData);
-
-        // Fetch doctors
-        const doctorsRes = await fetch('http://localhost:5000/api/doctor-list', { headers });
-        const doctorsData = await doctorsRes.json();
-        setDoctors(doctorsData.data || []);
-
-        // Calculate stats
-        const today = new Date();
-        const upcomingAppointments = appointmentsData.filter(a => {
-          try {
-            const dateObj = a.appointmentDate ? new Date(a.appointmentDate) : null;
-            if (!dateObj || isNaN(dateObj)) return false;
-            return dateObj >= new Date(today.getFullYear(), today.getMonth(), today.getDate());
-          } catch (e) {
-            return false;
-          }
-        });
         
-        setStats({
-          totalPatients: patientsData.length || 0,
-          totalDoctors: doctorsData.data?.length || 0,
-          todayAppointments: upcomingAppointments.length,
-          pendingAppointments: appointmentsData.filter(a => a.status === 'pending').length,
-        });
+        // Sử dụng dữ liệu fake
+        setStats(FAKE_STATS);
+        setAppointments(FAKE_APPOINTMENTS);
+        setPatients(FAKE_PATIENTS);
+        setDoctors(FAKE_DOCTORS_45);
+        
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        setStats({
-          totalPatients: 0,
-          totalDoctors: 0,
-          todayAppointments: 0,
-          pendingAppointments: 0,
-        });
+        // Fallback vẫn dùng dữ liệu fake
+        setStats(FAKE_STATS);
+        setAppointments(FAKE_APPOINTMENTS);
+        setPatients(FAKE_PATIENTS);
+        setDoctors(FAKE_DOCTORS_45);
       } finally {
         setLoading(false);
       }

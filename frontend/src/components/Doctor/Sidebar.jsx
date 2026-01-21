@@ -18,7 +18,15 @@ import {
 const Sidebar = ({ doctor, loading }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const displayName = doctor?.name || 'Đang tải...';
+  
+  // Loại bỏ tiền tố "BS.", "PGS.TS.", "TS." nếu có
+  const cleanName = doctor?.name ? 
+    doctor.name
+      .replace(/^(BS\.|PGS\.TS\.|TS\.|Dr\.|BS\.CKI\.)\s+/, '')
+      .trim()
+    : 'Đang tải...';
+  
+  const displayName = cleanName;
   const subtitle = doctor?.role ? doctor.role : (doctor?.email || 'Nội tổng quát');
   const initials = doctor?.name
     ? doctor.name
@@ -101,7 +109,7 @@ const Sidebar = ({ doctor, loading }) => {
             {loading ? '...' : initials}
           </div>
           <div>
-            <p className="text-sm font-medium text-[#F1F5F9]">BS. {displayName}</p>
+            <p className="text-sm font-medium text-[#F1F5F9]">Dr. {displayName}</p>
             <p className="text-xs text-[#64748B]">{subtitle}</p>
           </div>
         </div>

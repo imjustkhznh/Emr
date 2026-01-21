@@ -12,7 +12,7 @@ const sampleAppointments = [
   {
     id: '1',
     patientName: 'Nguyễn Văn An',
-    doctorName: 'BS. Trần Văn A',
+    doctorName: 'Dr. Trần Văn A',
     appointmentTime: '09:00',
     reason: 'Khám tổng quát',
     status: 'pending'
@@ -20,7 +20,7 @@ const sampleAppointments = [
   {
     id: '2',
     patientName: 'Trần Thị Bình',
-    doctorName: 'BS. Nguyễn Thị B',
+    doctorName: 'Dr. Nguyễn Thị B',
     appointmentTime: '10:30',
     reason: 'Khám da',
     status: 'confirmed'
@@ -28,7 +28,7 @@ const sampleAppointments = [
   {
     id: '3',
     patientName: 'Lê Văn Cường',
-    doctorName: 'BS. Lê Văn C',
+    doctorName: 'Dr. Lê Văn C',
     appointmentTime: '14:00',
     reason: 'Khám tim',
     status: 'confirmed'

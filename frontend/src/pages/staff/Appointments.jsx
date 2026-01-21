@@ -31,7 +31,7 @@ const sampleStaffAppointments = [
     patientId: 'BN003',
     patientName: 'Lê Văn Cường',
     patientPhone: '0909123123',
-    doctorName: 'BS. Lê Văn C',
+    doctorName: 'Dr. Lê Văn C',
     specialty: 'Tim mạch',
     appointmentDate: '2026-01-16',
     appointmentTime: '14:00',

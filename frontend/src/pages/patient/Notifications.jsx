@@ -5,7 +5,7 @@ const Notifications = () => {
     {
       time: 'Hôm nay • 08:00',
       title: 'Nhắc lịch khám nội tổng quát',
-      content: 'Bạn có lịch khám với BS. Nguyễn Thị Lan lúc 08:30 hôm nay.',
+      content: 'Bạn có lịch khám với Dr. Nguyễn Thị Lan lúc 08:30 hôm nay.',
       type: 'appointment',
     },
     {

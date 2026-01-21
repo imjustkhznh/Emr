@@ -4,14 +4,14 @@ const Visits = () => {
   const visits = [
     {
       date: '05/03/2026',
-      doctor: 'BS. Nguyễn Thị Lan',
+      doctor: 'Dr. Nguyễn Thị Lan',
       department: 'Nội tổng quát',
       diagnosis: 'Viêm họng cấp',
       type: 'Khám trực tiếp',
     },
     {
       date: '10/02/2026',
-      doctor: 'BS. Trần Văn Minh',
+      doctor: 'Dr. Trần Văn Minh',
       department: 'Tim mạch',
       diagnosis: 'Tăng huyết áp độ 1',
       type: 'Khám trực tiếp',

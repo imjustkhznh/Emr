@@ -1,112 +1,78 @@
-import React, { useEffect, useState } from 'react';
-import { appointmentAPI, userAPI } from '../../services/apiService';
-import { ChevronLeft, ChevronRight, Plus, AlertCircle, Edit2, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, Plus, AlertCircle, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const patientsSampleIds = [
-  { id: '507f1f77bcf86cd799439001', name: 'Nguyễn Văn An' },
-  { id: '507f1f77bcf86cd799439002', name: 'Trần Thị Bình' },
-  { id: '507f1f77bcf86cd799439003', name: 'Lê Văn Cường' },
-  { id: '507f1f77bcf86cd799439004', name: 'Phạm Thị Dung' },
-  { id: '507f1f77bcf86cd799439005', name: 'Hoàng Minh Tuấn' }
+// Danh sách 25 bệnh nhân (giống như ở doctor/patients)
+const FAKE_DOCTOR_PATIENTS = [
+  { _id: 'dp_1', name: 'Nguyễn Văn An', gender: 'Nam' },
+  { _id: 'dp_2', name: 'Trần Thị Bình', gender: 'Nữ' },
+  { _id: 'dp_3', name: 'Phạm Minh Châu', gender: 'Nam' },
+  { _id: 'dp_4', name: 'Hoàng Thị Dung', gender: 'Nữ' },
+  { _id: 'dp_5', name: 'Vũ Quốc Gia', gender: 'Nam' },
+  { _id: 'dp_6', name: 'Đặng Ngọc Hạnh', gender: 'Nữ' },
+  { _id: 'dp_7', name: 'Bùi Văn Hoàn', gender: 'Nam' },
+  { _id: 'dp_8', name: 'Dương Thị Linh', gender: 'Nữ' },
+  { _id: 'dp_9', name: 'Cao Minh Khánh', gender: 'Nam' },
+  { _id: 'dp_10', name: 'Lê Thị Linh', gender: 'Nữ' },
+  { _id: 'dp_11', name: 'Võ Hữu Minh', gender: 'Nam' },
+  { _id: 'dp_12', name: 'Phan Thị Nhuận', gender: 'Nữ' },
+  { _id: 'dp_13', name: 'Lý Văn Oanh', gender: 'Nam' },
+  { _id: 'dp_14', name: 'Huỳnh Thị Phương', gender: 'Nữ' },
+  { _id: 'dp_15', name: 'Kiều Minh Quân', gender: 'Nam' },
+  { _id: 'dp_16', name: 'Hà Thị Rúa', gender: 'Nữ' },
+  { _id: 'dp_17', name: 'Trương Văn Sơn', gender: 'Nam' },
+  { _id: 'dp_18', name: 'Quách Thị Tâm', gender: 'Nữ' },
+  { _id: 'dp_19', name: 'Đỗ Hữu Uyên', gender: 'Nam' },
+  { _id: 'dp_20', name: 'Tô Thị Vân', gender: 'Nữ' },
+  { _id: 'dp_21', name: 'Nguyễn Minh Anh', gender: 'Nam' },
+  { _id: 'dp_22', name: 'Trần Thị Bích', gender: 'Nữ' },
+  { _id: 'dp_23', name: 'Phạm Quốc Cương', gender: 'Nam' },
+  { _id: 'dp_24', name: 'Hoàng Hương Duyên', gender: 'Nữ' },
+  { _id: 'dp_25', name: 'Vũ Thanh Anh', gender: 'Nam' }
 ];
 
-const patientsList = [
-  { id: 'BN001', name: 'Nguyễn Văn An', gender: 'Nam', phone: '0912345678' },
-  { id: 'BN002', name: 'Trần Thị Bình', gender: 'Nữ', phone: '0987654321' },
-  { id: 'BN003', name: 'Lê Văn Cường', gender: 'Nam', phone: '0909123123' },
-  { id: 'BN004', name: 'Phạm Thị Dung', gender: 'Nữ', phone: '0911000001' },
-  { id: 'BN005', name: 'Hoàng Minh Tuấn', gender: 'Nam', phone: '091000000' },
-  { id: 'BN006', name: 'Vũ Thị Lan', gender: 'Nữ', phone: '091001234' },
-  { id: 'BN007', name: 'Đặng Văn Hùng', gender: 'Nam', phone: '091002468' },
-  { id: 'BN008', name: 'Bùi Thị Mai', gender: 'Nữ', phone: '091003702' },
-  { id: 'BN009', name: 'Phan Văn Quang', gender: 'Nam', phone: '091004936' },
-  { id: 'BN010', name: 'Đỗ Thị Hạnh', gender: 'Nữ', phone: '091006170' },
-  { id: 'BN011', name: 'Ngô Văn Phúc', gender: 'Nam', phone: '091007404' },
-  { id: 'BN012', name: 'Lý Thị Thu', gender: 'Nữ', phone: '091008638' },
-  { id: 'BN013', name: 'Trịnh Văn Sơn', gender: 'Nam', phone: '091009872' },
-  { id: 'BN014', name: 'Tạ Thị Kim', gender: 'Nữ', phone: '091011106' },
-  { id: 'BN015', name: 'Phùng Văn Tài', gender: 'Nam', phone: '091012340' },
-  { id: 'BN016', name: 'Lâm Thị Hoa', gender: 'Nữ', phone: '091013574' },
-  { id: 'BN017', name: 'Vương Văn Khánh', gender: 'Nam', phone: '091014808' },
-  { id: 'BN018', name: 'Châu Thị Yến', gender: 'Nữ', phone: '091016042' },
-  { id: 'BN019', name: 'Kiều Văn Phong', gender: 'Nam', phone: '091017276' },
-  { id: 'BN020', name: 'Lưu Thị Hương', gender: 'Nữ', phone: '091018510' }
-];
+// Tạo fake appointments từ danh sách bệnh nhân
+const createFakeAppointments = (doctorName) => {
+  const reasons = ['Khám tổng quát', 'Kiểm tra cảm cúm', 'Quản lý tiểu đường', 'Kiểm tra viêm phế quản', 'Theo dõi tim mạch', 'Điều trị dị ứng', 'Kiểm tra mỡ máu', 'Điều trị loãng xương', 'Kiểm tra dạ dày', 'Vật lý trị liệu'];
+  const statuses = ['confirmed', 'pending', 'completed', 'cancelled'];
+  const times = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+  
+  return FAKE_DOCTOR_PATIENTS.map((patient, idx) => {
+    const dayOffset = Math.floor(idx / 3);
+    const date = new Date(2025, 0, 22 + dayOffset);
+    const dateStr = date.toISOString().split('T')[0];
+    const timeIdx = idx % times.length;
+    
+    return {
+      _id: `apt_${idx + 1}`,
+      patientInfo: { name: patient.name, gender: patient.gender },
+      appointmentDate: dateStr,
+      appointmentTime: times[timeIdx],
+      reason: reasons[idx % reasons.length],
+      status: statuses[idx % 4],
+      doctorInfo: { name: doctorName },
+      createdAt: new Date(2025, 0, 20 + Math.floor(idx / 8)).toISOString()
+    };
+  });
+};
 
 const Appointments = () => {
-  const [appointments, setAppointments] = useState([]);
-  const [patients, setPatients] = useState([]);
+  // Lấy tên bác sĩ từ localStorage
+  const currentUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('currentUser')) || {};
+  const doctorName = currentUser.name || 'Bác sĩ';
+  
+  const [appointments, setAppointments] = useState(createFakeAppointments(doctorName));
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
-    patientId: '',
+    patientName: '',
     appointmentDate: '',
     appointmentTime: '',
     reason: ''
   });
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState(null);
-
-  const currentUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('currentUser')) || {};
-
-  // Fetch appointments và patients từ MongoDB
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch appointments
-        const appointmentsRes = await appointmentAPI.getAll();
-        console.log('📋 All Appointments count:', appointmentsRes.data?.data?.length);
-        
-        // Fetch patients list để check role
-        const patientsRes = await userAPI.getAll();
-        let patientsList = [];
-        if (patientsRes.data && patientsRes.data.data) {
-          patientsList = patientsRes.data.data;
-          setPatients(patientsList);
-        }
-        
-        // Filter appointments - chỉ lấy những appointments mà patient không phải doctor/admin
-        let filteredAppointments = [];
-        if (appointmentsRes.data && appointmentsRes.data.data) {
-          filteredAppointments = appointmentsRes.data.data.filter(apt => {
-            // Lấy patient info
-            const patientId = apt.patientId?._id || apt.patientId;
-            
-            // Tìm patient trong danh sách để check role
-            const patient = patientsList.find(p => 
-              p._id === patientId || p._id?.toString() === patientId?.toString()
-            );
-            
-            // Chỉ lấy appointments mà patient không phải doctor hoặc admin
-            if (!patient) return true; // Nếu không tìm thấy, vẫn lấy
-            
-            const role = patient.role?.toLowerCase?.() || patient.role || '';
-            const isDoctorOrAdmin = role === 'doctor' || role === 'admin';
-            
-            // Loại bỏ appointments mà doctorInfo.name là "Doctor User"
-            const isDoctorUser = apt.doctorInfo?.name === 'Doctor User';
-            
-            return !isDoctorOrAdmin && !isDoctorUser;
-          });
-          
-          setAppointments(filteredAppointments);
-          console.log(`✅ Loaded ${filteredAppointments.length} appointments (patients only)`);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Lỗi khi tải dữ liệu từ MongoDB');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-  const doctorProfileId = currentUser._id;
 
   const pageSize = 10;
   const totalPages = Math.ceil(appointments.length / pageSize);
@@ -119,7 +85,7 @@ const Appointments = () => {
   const handleEdit = (appointment) => {
     setEditingId(appointment._id);
     setForm({
-      patientId: appointment.patientId,
+      patientName: appointment.patientInfo?.name || '',
       appointmentDate: appointment.appointmentDate?.split('T')[0] || '',
       appointmentTime: appointment.appointmentTime || '',
       reason: appointment.reason || ''
@@ -129,16 +95,8 @@ const Appointments = () => {
 
   const handleDelete = (appointmentId) => {
     if (window.confirm('Bạn có chắc muốn xóa lịch hẹn này?')) {
-      appointmentAPI.delete(appointmentId)
-        .then(() => {
-          setAppointments(appointments.filter(a => a._id !== appointmentId));
-          toast.success('Xóa lịch hẹn thành công');
-        })
-        .catch(err => {
-          const message = err.response?.data?.message || err.message;
-          setError('Xóa lịch hẹn thất bại: ' + message);
-          toast.error('Xóa lịch hẹn thất bại');
-        });
+      setAppointments(appointments.filter(a => a._id !== appointmentId));
+      toast.success('Xóa lịch hẹn thành công');
     }
   };
 
@@ -146,57 +104,44 @@ const Appointments = () => {
     e.preventDefault();
     setError('');
     
-    if (!form.patientId) {
-      setError('Vui lòng chọn bệnh nhân.');
+    if (!form.patientName) {
+      setError('Vui lòng nhập tên bệnh nhân.');
       return;
     }
     
-    // Sử dụng một doctorProfileId mẫu nếu không có
-    const doctorId = doctorProfileId || '507f1f77bcf86cd799438999';
-    
-    const appointmentData = {
-      patientId: form.patientId,
-      doctorProfileId: doctorId,
-      appointmentDate: form.appointmentDate,
-      appointmentTime: form.appointmentTime,
-      reason: form.reason
-    };
-    
-    console.log('Sending appointment data:', appointmentData);
-    
     if (editingId) {
       // Update appointment
-      appointmentAPI.update(editingId, appointmentData)
-        .then(res => {
-          setAppointments(appointments.map(a => a._id === editingId ? res.data.data : a));
-          setShowForm(false);
-          setEditingId(null);
-          setForm({ patientId: '', appointmentDate: '', appointmentTime: '', reason: '' });
-          setError('');
-          toast.success('Cập nhật lịch hẹn thành công');
-        })
-        .catch(err => {
-          const message = err.response?.data?.message || err.message;
-          setError('Cập nhật lịch hẹn thất bại: ' + message);
-          toast.error('Cập nhật lịch hẹn thất bại');
-        });
+      setAppointments(appointments.map(a => 
+        a._id === editingId 
+          ? {
+              ...a,
+              patientInfo: { ...a.patientInfo, name: form.patientName },
+              appointmentDate: form.appointmentDate,
+              appointmentTime: form.appointmentTime,
+              reason: form.reason
+            }
+          : a
+      ));
+      setShowForm(false);
+      setEditingId(null);
+      setForm({ patientName: '', appointmentDate: '', appointmentTime: '', reason: '' });
+      toast.success('Cập nhật lịch hẹn thành công');
     } else {
       // Create new appointment
-      appointmentAPI.create(appointmentData)
-        .then(res => {
-          console.log('Appointment created:', res.data);
-          setAppointments([res.data.data, ...appointments]);
-          setShowForm(false);
-          setForm({ patientId: '', appointmentDate: '', appointmentTime: '', reason: '' });
-          setError('');
-          toast.success('Tạo lịch hẹn thành công');
-        })
-        .catch(err => {
-          console.error('Appointment error:', err.response?.data || err.message);
-          const message = err.response?.data?.message || err.response?.data?.error || err.message;
-          setError('Tạo lịch hẹn thất bại: ' + message);
-          toast.error('Tạo lịch hẹn thất bại');
-        });
+      const newAppointment = {
+        _id: `apt_${Date.now()}`,
+        patientInfo: { name: form.patientName, gender: 'Nam' },
+        appointmentDate: form.appointmentDate,
+        appointmentTime: form.appointmentTime,
+        reason: form.reason,
+        status: 'pending',
+        doctorInfo: { name: doctorName },
+        createdAt: new Date().toISOString()
+      };
+      setAppointments([newAppointment, ...appointments]);
+      setShowForm(false);
+      setForm({ patientName: '', appointmentDate: '', appointmentTime: '', reason: '' });
+      toast.success('Tạo lịch hẹn thành công');
     }
   };
 
@@ -222,22 +167,16 @@ const Appointments = () => {
             <h3 className="text-lg font-semibold mb-4 text-gray-800">{editingId ? 'Cập nhật lịch hẹn' : 'Tạo lịch hẹn mới'}</h3>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bệnh nhân</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tên bệnh nhân</label>
                 <input 
-                  name="patientId" 
+                  name="patientName" 
                   type="text" 
-                  value={form.patientId} 
+                  value={form.patientName} 
                   onChange={handleChange}
-                  placeholder="Chọn bệnh nhân"
-                  list="patients-list"
+                  placeholder="Nhập tên bệnh nhân"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required 
                 />
-                <datalist id="patients-list">
-                  {patients.map(p => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))}
-                </datalist>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Ngày khám</label>
@@ -285,7 +224,7 @@ const Appointments = () => {
                 <button type="button" onClick={() => {
                   setShowForm(false);
                   setEditingId(null);
-                  setForm({ patientId: '', appointmentDate: '', appointmentTime: '', reason: '' });
+                  setForm({ patientName: '', appointmentDate: '', appointmentTime: '', reason: '' });
                 }} className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold">
                   Hủy
                 </button>
@@ -300,78 +239,83 @@ const Appointments = () => {
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full divide-y divide-gray-200">
-                  <thead className="bg-blue-600">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">STT</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Tên Bệnh Nhân</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Giới tính</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Ngày</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Giờ</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Lý do</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Trạng thái</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Bác sĩ</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Tạo lúc</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold text-white">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {paginatedAppointments.length === 0 ? (
-                      <tr>
-                        <td colSpan="10" className="px-6 py-8 text-center text-gray-500">
-                          Không có lịch hẹn nào
-                        </td>
-                      </tr>
-                    ) : (
-                      paginatedAppointments.map((a, idx) => {
-                        const dateStr = a.appointmentDate ? new Date(a.appointmentDate).toLocaleDateString('vi-VN') : '';
-                        const statusLabels = { 'pending': 'Chờ xử lý', 'confirmed': 'Xác nhận', 'completed': 'Hoàn tất', 'cancelled': 'Huỷ', 'in_progress': 'Đang khám' };
-                        const createdStr = a.createdAt ? new Date(a.createdAt).toLocaleString('vi-VN') : '';
-                        return (
-                          <tr key={a._id || idx} className="hover:bg-gray-50 transition">
-                            <td className="px-6 py-4 text-sm text-gray-600 font-medium">{(currentPage - 1) * pageSize + idx + 1}</td>
-                            <td className="px-6 py-4 text-sm font-semibold text-gray-900">{a.patientInfo?.name || 'N/A'}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{a.patientInfo?.gender || '-'}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{dateStr}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{a.appointmentTime}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{a.reason}</td>
-                            <td className="px-6 py-4 text-sm">
-                              <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                                a.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                a.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                                a.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                a.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                a.status === 'in_progress' ? 'bg-purple-100 text-purple-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {statusLabels[a.status] || a.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{a.doctorInfo?.name || 'N/A'}</td>
-                            <td className="px-6 py-4 text-xs text-gray-600">{createdStr}</td>
-                            <td className="px-6 py-4 text-center">
-                              <div className="flex gap-2 justify-center">
-                                <button onClick={() => handleEdit(a)} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-xs">
-                                  <Edit2 className="w-4 h-4" /> Sửa
-                                </button>
-                                <button onClick={() => handleDelete(a._id)} className="inline-flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-xs">
-                                  <Trash2 className="w-4 h-4" /> Xóa
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
+            {paginatedAppointments.length === 0 ? (
+              <div className="bg-white rounded-lg shadow p-12 text-center">
+                <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-500 text-lg">Không có lịch hẹn nào</p>
               </div>
-            </div>
+            ) : (
+              <div className="grid gap-4">
+                {paginatedAppointments.map((a, idx) => {
+                  const dateStr = a.appointmentDate ? new Date(a.appointmentDate).toLocaleDateString('vi-VN') : '';
+                  const statusLabels = { 'pending': 'Chờ xử lý', 'confirmed': 'Xác nhận', 'completed': 'Hoàn tất', 'cancelled': 'Huỷ', 'in_progress': 'Đang khám' };
+                  const statusColors = {
+                    'pending': 'bg-yellow-50 border-l-4 border-yellow-400',
+                    'confirmed': 'bg-blue-50 border-l-4 border-blue-400',
+                    'completed': 'bg-green-50 border-l-4 border-green-400',
+                    'cancelled': 'bg-red-50 border-l-4 border-red-400',
+                    'in_progress': 'bg-purple-50 border-l-4 border-purple-400'
+                  };
+                  const statusBadgeColors = {
+                    'pending': 'bg-yellow-100 text-yellow-800',
+                    'confirmed': 'bg-blue-100 text-blue-800',
+                    'completed': 'bg-green-100 text-green-800',
+                    'cancelled': 'bg-red-100 text-red-800',
+                    'in_progress': 'bg-purple-100 text-purple-800'
+                  };
+                  
+                  return (
+                    <div key={a._id || idx} className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition ${statusColors[a.status] || 'border-l-4 border-gray-400'}`}>
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
+                        {/* STT & Tên bệnh nhân */}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">STT #{(currentPage - 1) * pageSize + idx + 1}</p>
+                          <p className="text-lg font-bold text-gray-900">{a.patientInfo?.name || 'N/A'}</p>
+                          <p className="text-sm text-gray-600 mt-1">{a.patientInfo?.gender || '-'}</p>
+                        </div>
+
+                        {/* Ngày & Giờ */}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Lịch khám</p>
+                          <p className="text-base font-semibold text-gray-900">{dateStr}</p>
+                          <div className="flex items-center gap-1 mt-1 text-sm text-gray-600">
+                            <Clock className="w-4 h-4" />
+                            {a.appointmentTime}
+                          </div>
+                        </div>
+
+                        {/* Lý do khám */}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Lý do khám</p>
+                          <p className="text-sm font-medium text-gray-900">{a.reason}</p>
+                        </div>
+
+                        {/* Trạng thái */}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Trạng thái</p>
+                          <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusBadgeColors[a.status] || 'bg-gray-100 text-gray-800'}`}>
+                            {statusLabels[a.status] || a.status}
+                          </span>
+                        </div>
+
+                        {/* Thao tác */}
+                        <div className="flex gap-2 justify-end md:flex-col md:items-end">
+                          <button onClick={() => handleEdit(a)} className="inline-flex items-center gap-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium">
+                            <Edit2 className="w-4 h-4" /> Sửa
+                          </button>
+                          <button onClick={() => handleDelete(a._id)} className="inline-flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm font-medium">
+                            <Trash2 className="w-4 h-4" /> Xóa
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {totalPages > 1 && (
-              <div className="flex justify-between items-center mt-6">
+              <div className="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p className="text-sm text-gray-600">
                   Hiển thị <span className="font-semibold">{Math.min((currentPage - 1) * pageSize + 1, appointments.length)}</span> - <span className="font-semibold">{Math.min(currentPage * pageSize, appointments.length)}</span> trên <span className="font-semibold">{appointments.length}</span> lịch hẹn
                 </p>
@@ -379,21 +323,21 @@ const Appointments = () => {
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="inline-flex items-center px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="inline-flex items-center px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <div className="flex gap-1">
+                  <div className="flex gap-2">
                     {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
                       const pageNum = i + 1;
                       return (
                         <button
                           key={pageNum}
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                          className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
                             currentPage === pageNum
-                              ? 'bg-blue-600 text-white'
-                              : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
+                              : 'border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
                           }`}
                         >
                           {pageNum}
@@ -404,9 +348,9 @@ const Appointments = () => {
                   <button
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="inline-flex items-center px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="inline-flex items-center px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>

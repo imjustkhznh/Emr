@@ -31,7 +31,7 @@ const sampleStaffPrescriptions = [
     id: '3',
     patientId: 'BN003',
     patientName: 'Lê Văn Cường',
-    doctorName: 'BS. Lê Văn C',
+    doctorName: 'Dr. Lê Văn C',
     medications: [
       { name: 'Omeprazole 20mg', quantity: 28, dosage: '1 viên/lần - 1 lần/ngày', duration: '4 tuần' }
     ],

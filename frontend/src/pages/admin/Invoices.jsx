@@ -12,6 +12,86 @@ const formatVND = (amount) => {
   }).format(amount);
 };
 
+// Tạo dữ liệu fake hóa đơn
+const generateFakeInvoices = () => {
+  const patientNames = [
+    'Nguyễn Văn A', 'Trần Thị B', 'Phạm Minh C', 'Đặng Quốc D', 'Bùi Hồng E',
+    'Vũ Thế F', 'Hoàng Anh G', 'Lý Hữu H', 'Tô Thị I', 'Mạc Văn J',
+    'Dương Thị K', 'Cao Minh L', 'Kiều Quốc M', 'Trương Thái N', 'Lê Hữu O',
+    'Phan Thị P', 'Đinh Văn Q', 'Tạ Minh R', 'Đoàn Thị S', 'Giáp Quốc T'
+  ];
+
+  const services = [
+    { name: 'Khám ngoại trú', price: 250000 },
+    { name: 'Kiểm tra máu', price: 150000 },
+    { name: 'X-quang', price: 300000 },
+    { name: 'Siêu âm', price: 250000 },
+    { name: 'CT scan', price: 800000 },
+    { name: 'Điện tâm đồ', price: 100000 },
+    { name: 'Phẫu thuật nhỏ', price: 1500000 },
+    { name: 'Nhập viện nội khoa', price: 500000 },
+    { name: 'Nhập viện ngoại khoa', price: 800000 },
+    { name: 'Chăm sóc tập trung', price: 300000 }
+  ];
+
+  const statuses = ['paid', 'pending', 'overdue'];
+  const invoices = [];
+
+  for (let i = 1; i <= 500; i++) {
+    const issuedDate = new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000);
+    const dueDate = new Date(issuedDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+    
+    // Chọn 1-3 dịch vụ ngẫu nhiên
+    const numServices = Math.floor(Math.random() * 3) + 1;
+    const items = [];
+    let subtotal = 0;
+
+    for (let j = 0; j < numServices; j++) {
+      const service = services[Math.floor(Math.random() * services.length)];
+      const quantity = Math.floor(Math.random() * 2) + 1;
+      const amount = service.price * quantity;
+      items.push({
+        description: service.name,
+        quantity,
+        unitPrice: service.price,
+        amount
+      });
+      subtotal += amount;
+    }
+
+    const tax = Math.floor(subtotal * 0.1);
+    const total = subtotal + tax;
+
+    let status = statuses[Math.floor(Math.random() * statuses.length)];
+    let paidDate = null;
+
+    if (status === 'paid') {
+      paidDate = new Date(issuedDate.getTime() + Math.random() * 15 * 24 * 60 * 60 * 1000);
+    }
+
+    invoices.push({
+      _id: `INV-${String(i).padStart(4, '0')}`,
+      invoiceNumber: `HĐ-2024-${String(i).padStart(5, '0')}`,
+      patientName: patientNames[Math.floor(Math.random() * patientNames.length)],
+      patient: {
+        _id: `PAT-${i}`,
+        name: patientNames[Math.floor(Math.random() * patientNames.length)]
+      },
+      items,
+      subtotal,
+      tax,
+      total,
+      status,
+      issuedDate,
+      dueDate,
+      paidDate,
+      description: `Thanh toán các dịch vụ y tế`
+    });
+  }
+
+  return invoices;
+};
+
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +100,8 @@ const Invoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
   const [formData, setFormData] = useState({
     invoiceNumber: '',
     patientName: '',
@@ -34,18 +116,14 @@ const Invoices = () => {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/invoices', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setInvoices(data.data);
-      }
+      // Sử dụng dữ liệu fake
+      const fakeInvoices = generateFakeInvoices();
+      setInvoices(fakeInvoices);
     } catch (error) {
       console.error('Lỗi:', error);
-      toast.error('Lỗi khi tải hóa đơn');
+      // Fallback vẫn dùng dữ liệu fake
+      const fakeInvoices = generateFakeInvoices();
+      setInvoices(fakeInvoices);
     } finally {
       setLoading(false);
     }
@@ -238,6 +316,17 @@ const Invoices = () => {
     return matchSearch && matchStatus;
   });
 
+  // Tính toán pagination
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
+
+  // Reset page khi filter thay đổi
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -341,7 +430,7 @@ const Invoices = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredInvoices.map((invoice) => (
+              {currentInvoices.map((invoice) => (
                 <tr key={invoice._id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -395,6 +484,60 @@ const Invoices = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {filteredInvoices.length > 0 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+            Trước
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+            if (
+              page === 1 ||
+              page === totalPages ||
+              (page >= currentPage - 1 && page <= currentPage + 1)
+            ) {
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
+                    currentPage === page
+                      ? 'bg-green-600 text-white'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}>
+                  {page}
+                </button>
+              );
+            } else if (
+              (page === 2 && currentPage > 3) ||
+              (page === totalPages - 1 && currentPage < totalPages - 2)
+            ) {
+              return (
+                <span key={page} className="px-2 py-2 text-gray-500">
+                  ...
+                </span>
+              );
+            }
+            return null;
+          })}
+
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+            Tiếp
+          </button>
+
+          <div className="ml-4 text-sm text-gray-600">
+            Trang {currentPage} / {totalPages} | Tổng: {filteredInvoices.length} hóa đơn
+          </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       {showDetailModal && selectedInvoice && (

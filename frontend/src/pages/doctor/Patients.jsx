@@ -3,6 +3,35 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, FilePlus, XCircle, UserCircle2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
+// Dữ liệu fake 25 bệnh nhân cứng (cố định mỗi lần F5)
+const FAKE_DOCTOR_PATIENTS = [
+  { _id: 'dp_1', name: 'Nguyễn Văn An', age: 35, gender: 'Nam', phone: '0912345670', email: 'nguyenvanan1@gmail.com', address: 'Số 10 Phố Nguyễn Huệ, Hà Nội', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_2', name: 'Trần Thị Bình', age: 28, gender: 'Nữ', phone: '0912345671', email: 'tranthbinh2@gmail.com', address: 'Số 25 Đường Trần Hưng Đạo, TP. HCM', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_3', name: 'Phạm Minh Châu', age: 42, gender: 'Nam', phone: '0912345672', email: 'phamminhchau3@gmail.com', address: 'Số 55 Phố Cổ Loa, Hà Nội', status: 'Đang điều trị', role: 'patients' },
+  { _id: 'dp_4', name: 'Hoàng Thị Dung', age: 31, gender: 'Nữ', phone: '0912345673', email: 'hoangthidung4@gmail.com', address: 'Số 88 Đường Hoàng Văn Thụ, Đà Nẵng', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_5', name: 'Vũ Quốc Gia', age: 55, gender: 'Nam', phone: '0912345674', email: 'vuquocgia5@gmail.com', address: 'Số 15 Phố Kim Mã, Hà Nội', status: 'Tạm dừng', role: 'patients' },
+  { _id: 'dp_6', name: 'Đặng Ngọc Hạnh', age: 26, gender: 'Nữ', phone: '0912345675', email: 'dangngochahn6@gmail.com', address: 'Số 42 Đường Lê Lợi, TP. HCM', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_7', name: 'Bùi Văn Hoàn', age: 48, gender: 'Nam', phone: '0912345676', email: 'buivanhoan7@gmail.com', address: 'Số 77 Phố Hàng Bông, Hà Nội', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_8', name: 'Dương Thị Linh', age: 33, gender: 'Nữ', phone: '0912345677', email: 'duongthilinh8@gmail.com', address: 'Số 99 Đường Pasteur, Hà Nội', status: 'Đang điều trị', role: 'patients' },
+  { _id: 'dp_9', name: 'Cao Minh Khánh', age: 29, gender: 'Nam', phone: '0912345678', email: 'caominhkhanh9@gmail.com', address: 'Số 33 Phố Bà Triệu, Hà Nội', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_10', name: 'Lê Thị Linh', age: 37, gender: 'Nữ', phone: '0912345679', email: 'lethilinh10@gmail.com', address: 'Số 60 Đường Võ Văn Kiệt, TP. HCM', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_11', name: 'Võ Hữu Minh', age: 45, gender: 'Nam', phone: '0912345680', email: 'vohuuminh11@gmail.com', address: 'Số 18 Phố Nguyễn Huệ, Hà Nội', status: 'Tạm dừng', role: 'patients' },
+  { _id: 'dp_12', name: 'Phan Thị Nhuận', age: 32, gender: 'Nữ', phone: '0912345681', email: 'phanthinhuan12@gmail.com', address: 'Số 44 Đường Trần Hưng Đạo, Hải Phòng', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_13', name: 'Lý Văn Oanh', age: 51, gender: 'Nam', phone: '0912345682', email: 'lyvanoanh13@gmail.com', address: 'Số 72 Phố Cổ Loa, Hà Nội', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_14', name: 'Huỳnh Thị Phương', age: 30, gender: 'Nữ', phone: '0912345683', email: 'huynhthiphuong14@gmail.com', address: 'Số 85 Đường Hoàng Văn Thụ, Cần Thơ', status: 'Đang điều trị', role: 'patients' },
+  { _id: 'dp_15', name: 'Kiều Minh Quân', age: 40, gender: 'Nam', phone: '0912345684', email: 'kieuminhquan15@gmail.com', address: 'Số 29 Phố Kim Mã, Hà Nội', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_16', name: 'Hà Thị Rúa', age: 27, gender: 'Nữ', phone: '0912345685', email: 'hathirua16@gmail.com', address: 'Số 56 Đường Lê Lợi, Hải Phòng', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_17', name: 'Trương Văn Sơn', age: 52, gender: 'Nam', phone: '0912345686', email: 'truongvanson17@gmail.com', address: 'Số 91 Phố Hàng Bông, Hà Nội', status: 'Tạm dừng', role: 'patients' },
+  { _id: 'dp_18', name: 'Quách Thị Tâm', age: 34, gender: 'Nữ', phone: '0912345687', email: 'quachthitam18@gmail.com', address: 'Số 63 Đường Pasteur, Hà Nội', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_19', name: 'Đỗ Hữu Uyên', age: 46, gender: 'Nam', phone: '0912345688', email: 'dohuuuyen19@gmail.com', address: 'Số 37 Phố Bà Triệu, Hà Nội', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_20', name: 'Tô Thị Vân', age: 29, gender: 'Nữ', phone: '0912345689', email: 'tothivan20@gmail.com', address: 'Số 74 Đường Võ Văn Kiệt, Biên Hòa', status: 'Đang điều trị', role: 'patients' },
+  { _id: 'dp_21', name: 'Nguyễn Minh Anh', age: 38, gender: 'Nam', phone: '0912345690', email: 'nguyenminhanh21@gmail.com', address: 'Số 22 Phố Nguyễn Huệ, Hà Nội', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_22', name: 'Trần Thị Bích', age: 43, gender: 'Nữ', phone: '0912345691', email: 'tranthbich22@gmail.com', address: 'Số 51 Đường Trần Hưng Đạo, Nha Trang', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_23', name: 'Phạm Quốc Cương', age: 49, gender: 'Nam', phone: '0912345692', email: 'phamquoccuong23@gmail.com', address: 'Số 68 Phố Cổ Loa, Hà Nội', status: 'Tạm dừng', role: 'patients' },
+  { _id: 'dp_24', name: 'Hoàng Hương Duyên', age: 31, gender: 'Nữ', phone: '0912345693', email: 'hoanghuongduyen24@gmail.com', address: 'Số 80 Đường Hoàng Văn Thụ, Huế', status: 'Hoạt động', role: 'patients' },
+  { _id: 'dp_25', name: 'Vũ Thanh Anh', age: 54, gender: 'Nam', phone: '0912345694', email: 'vuthanhanh25@gmail.com', address: 'Số 47 Phố Kim Mã, Hà Nội', status: 'Hoạt động', role: 'patients' }
+];
+
 const Patients = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,22 +45,12 @@ const Patients = () => {
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:5000/api/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) throw new Error('Lỗi tải dữ liệu');
-      
-      const data = await response.json();
-      // Filter only patients (role: 'patients')
-      const patientsList = data.data.filter(user => user.role === 'patients');
-      setPatients(patientsList);
+      // Sử dụng dữ liệu fake cứng
+      setPatients(FAKE_DOCTOR_PATIENTS);
     } catch (error) {
       console.error('Error fetching patients:', error);
-      toast.error('Không thể tải danh sách bệnh nhân');
+      // Fallback vẫn dùng dữ liệu fake
+      setPatients(FAKE_DOCTOR_PATIENTS);
     } finally {
       setLoading(false);
     }

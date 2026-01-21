@@ -2,11 +2,176 @@ import React, { useState, useEffect } from 'react';
 import { Users, Search, Plus, Edit, Trash2, Mail, Phone, Shield, Filter, Loader, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
+// Dữ liệu fake 45 bác sĩ (giống Doctors.jsx)
+const FAKE_DOCTORS_45 = [
+  { _id: '1', name: 'Dr. Trần Hữu Bình', email: 'tranhuubinh@hospital.com', phone: '0901111111', specialty: 'Tim mạch', experience: 15, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '2', name: 'Dr. Phạm Mạnh Dũng', email: 'phammainhdung@hospital.com', phone: '0902222222', specialty: 'Nhi khoa', experience: 12, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '3', name: 'Dr. Vũ Quốc Thái', email: 'vuquocthai@hospital.com', phone: '0903333333', specialty: 'Ngoại khoa', experience: 18, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '4', name: 'Dr. Đặng Ngọc Hiểu', email: 'dangnochieu@hospital.com', phone: '0904444444', specialty: 'Da liễu', experience: 10, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '5', name: 'Dr. Bùi Hồng Anh', email: 'buihonganh@hospital.com', phone: '0905555555', specialty: 'Mắt', experience: 14, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '6', name: 'Dr. Nguyễn Văn Hùng', email: 'nguyenvanhung@hospital.com', phone: '0906666666', specialty: 'Nha khoa', experience: 11, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '7', name: 'Dr. Hoàng Thị Mai', email: 'hoangthimai@hospital.com', phone: '0907777777', specialty: 'Sản phụ khoa', experience: 16, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '8', name: 'Dr. Lý Văn Chung', email: 'lyvanching@hospital.com', phone: '0908888888', specialty: 'Hô hấp', experience: 13, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '9', name: 'Dr. Cao Thị Liên', email: 'caothilien@hospital.com', phone: '0909999999', specialty: 'Tâm lý', experience: 9, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '10', name: 'Dr. Dương Văn Long', email: 'duongvanlong@hospital.com', phone: '0910101010', specialty: 'Tiêu hóa', experience: 17, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '11', name: 'Dr. Trần Thị Hương', email: 'tranthihuong@hospital.com', phone: '0911111111', specialty: 'Thần kinh', experience: 14, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '12', name: 'Dr. Lê Văn Kiên', email: 'levankien@hospital.com', phone: '0912121212', specialty: 'Bỏng thương tích', experience: 8, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '13', name: 'Dr. Phan Minh Tuấn', email: 'phanminhttuan@hospital.com', phone: '0913131313', specialty: 'Xương khớp', experience: 19, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '14', name: 'Dr. Võ Thị Hạnh', email: 'vothihanh@hospital.com', phone: '0914141414', specialty: 'Ung bướu', experience: 12, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '15', name: 'Dr. Huỳnh Văn Sơn', email: 'huyunhvanson@hospital.com', phone: '0915151515', specialty: 'Tai mũi họng', experience: 11, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '16', name: 'Dr. Tô Thị Xuân', email: 'tothixuan@hospital.com', phone: '0916161616', specialty: 'Phòng khám đa khoa', experience: 7, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '17', name: 'Dr. Kiều Minh Hạo', email: 'kieuminhhao@hospital.com', phone: '0917171717', specialty: 'Tim mạch', experience: 16, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '18', name: 'Dr. Đinh Thị Hồng', email: 'dinhthihong@hospital.com', phone: '0918181818', specialty: 'Nhi khoa', experience: 13, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '19', name: 'Dr. Bạch Văn Hải', email: 'bauvamhai@hospital.com', phone: '0919191919', specialty: 'Ngoại khoa', experience: 20, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '20', name: 'Dr. Sơn Thị Linh', email: 'sonthilinh@hospital.com', phone: '0920202020', specialty: 'Phụ khoa', experience: 15, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '21', name: 'Dr. Vương Văn Tú', email: 'vuongvantu@hospital.com', phone: '0921212121', specialty: 'Chỉnh hình', experience: 10, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '22', name: 'Dr. Hồ Thị Thanh', email: 'hothithanh@hospital.com', phone: '0922222222', specialty: 'Hô hấp', experience: 12, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '23', name: 'Dr. Tạ Văn Đức', email: 'tavanduc@hospital.com', phone: '0923232323', specialty: 'Tiêu hóa', experience: 14, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '24', name: 'Dr. Giang Thị Huỳnh', email: 'giangthihuynh@hospital.com', phone: '0924242424', specialty: 'Thần kinh', experience: 18, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '25', name: 'Dr. Trịnh Văn Hùng', email: 'trinvanhung@hospital.com', phone: '0925252525', specialty: 'Nha khoa', experience: 11, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '26', name: 'Dr. Lai Thị Ngọc', email: 'laithingoc@hospital.com', phone: '0926262626', specialty: 'Da liễu', experience: 9, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '27', name: 'Dr. Bùi Văn Hùng', email: 'buivanhung@hospital.com', phone: '0927272727', specialty: 'Mắt', experience: 17, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '28', name: 'Dr. Chế Thị Huyền', email: 'chethihuyyen@hospital.com', phone: '0928282828', specialty: 'Tâm lý', experience: 8, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '29', name: 'Dr. Đỗ Văn Tâm', email: 'dovantam@hospital.com', phone: '0929292929', specialty: 'Bỏng thương tích', experience: 13, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '30', name: 'Dr. Phạm Thị Yên', email: 'phamthiyen@hospital.com', phone: '0930303030', specialty: 'Sản phụ khoa', experience: 15, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '31', name: 'Dr. Trương Văn Tịnh', email: 'truongvantinh@hospital.com', phone: '0931313131', specialty: 'Xương khớp', experience: 12, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '32', name: 'Dr. Võ Thị Tuyết', email: 'vothituyet@hospital.com', phone: '0932323232', specialty: 'Ung bướu', experience: 19, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '33', name: 'Dr. Lương Văn Sáng', email: 'luongvansang@hospital.com', phone: '0933333333', specialty: 'Tai mũi họng', experience: 10, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '34', name: 'Dr. Quách Thị Hương', email: 'quachthihuong@hospital.com', phone: '0934343434', specialty: 'Phòng khám đa khoa', experience: 11, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '35', name: 'Dr. Hà Văn Định', email: 'havandinh@hospital.com', phone: '0935353535', specialty: 'Tim mạch', experience: 16, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '36', name: 'Dr. Dương Thị Kiều', email: 'duongthikieu@hospital.com', phone: '0936363636', specialty: 'Nhi khoa', experience: 14, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '37', name: 'Dr. Trịnh Văn Dũng', email: 'trinvandung@hospital.com', phone: '0937373737', specialty: 'Ngoại khoa', experience: 18, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '38', name: 'Dr. Quý Thị Hồng', email: 'quythihong@hospital.com', phone: '0938383838', specialty: 'Da liễu', experience: 13, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '39', name: 'Dr. Kiên Văn Minh', email: 'kienvanminh@hospital.com', phone: '0939393939', specialty: 'Mắt', experience: 12, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '40', name: 'Dr. Tuyến Thị Hạnh', email: 'tuyenthihanh@hospital.com', phone: '0940404040', specialty: 'Nha khoa', experience: 10, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '41', name: 'Dr. Vân Văn Hải', email: 'vanvamhai@hospital.com', phone: '0941414141', specialty: 'Sản phụ khoa', experience: 17, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '42', name: 'Dr. Lý Thị Khánh', email: 'lyithikhanh@hospital.com', phone: '0942424242', specialty: 'Hô hấp', experience: 11, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '43', name: 'Dr. Hòa Văn Tân', email: 'hoavantan@hospital.com', phone: '0943434343', specialty: 'Tiêu hóa', experience: 15, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '44', name: 'Dr. Huệ Thị Sương', email: 'hueithisuong@hospital.com', phone: '0944444444', specialty: 'Thần kinh', experience: 13, profile: { status: 'active' }, role: 'doctor' },
+  { _id: '45', name: 'Dr. Năng Văn Thắng', email: 'nangvanthang@hospital.com', phone: '0945454545', specialty: 'Chỉnh hình', experience: 16, profile: { status: 'active' }, role: 'doctor' }
+];
+
+// Tạo dữ liệu fake 1250 bệnh nhân (giống Patients.jsx)
+const generateFakePatients = () => {
+  const firstNames = ['Nguyễn', 'Trần', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Dương', 'Cao', 'Lê', 'Võ', 'Phan', 'Lý', 'Huỳnh', 'Kiều', 'Hà', 'Trương', 'Quách', 'Đỗ', 'Tô'];
+  const lastNames = ['Văn', 'Thị', 'Minh', 'Hữu', 'Mạnh', 'Quốc', 'Ngọc', 'Hồng', 'Kiên', 'Long', 'Hương', 'Linh', 'Mai', 'Hạnh', 'Khánh', 'Sơn', 'Tuấn', 'Dũng', 'Ân', 'Bảo'];
+  const cities = ['Hà Nội', 'TP. HCM', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ', 'Biên Hòa', 'Nha Trang', 'Huế', 'Hải Dương', 'Thái Nguyên'];
+  const genders = ['Nam', 'Nữ'];
+  const statuses = ['Hoạt động', 'Tạm dừng', 'Đang điều trị'];
+
+  const patients = [];
+  for (let i = 1; i <= 1250; i++) {
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const middleName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    
+    patients.push({
+      _id: `patient_${i}`,
+      name: `${firstName} ${middleName} ${lastName}`,
+      email: `patient${i}@email.com`,
+      phone: `09${Math.floor(Math.random() * 900000000).toString().padStart(8, '0')}`,
+      age: Math.floor(Math.random() * (80 - 18 + 1)) + 18,
+      gender: genders[Math.floor(Math.random() * genders.length)],
+      address: `${Math.floor(Math.random() * 999) + 1} ${cities[Math.floor(Math.random() * cities.length)]}`,
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      role: 'patients',
+      isActive: Math.random() > 0.05
+    });
+  }
+  return patients;
+};
+
+// Tạo dữ liệu fake 50 nhân viên
+const generateFakeNurses = () => {
+  const firstNames = ['Nguyễn', 'Trần', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Dương', 'Cao', 'Lê'];
+  const lastNames = ['Văn', 'Thị', 'Minh', 'Hữu', 'Mạnh', 'Quốc', 'Ngọc', 'Hồng', 'Kiên', 'Long'];
+  
+  const nurses = [];
+  for (let i = 1; i <= 50; i++) {
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    
+    nurses.push({
+      _id: `nurse_${i}`,
+      name: `${firstName} ${lastName}`,
+      email: `nurse${i}@hospital.com`,
+      phone: `09${Math.floor(Math.random() * 900000000).toString().padStart(8, '0')}`,
+      role: 'Nurse',
+      isActive: Math.random() > 0.08,
+      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000)
+    });
+  }
+  return nurses;
+};
+
+// Tạo dữ liệu fake người dùng
+const generateFakeUsers = () => {
+  const allUsers = [];
+  
+  // 1 Admin
+  allUsers.push({
+    _id: 'USER_0001',
+    name: 'Admin System',
+    email: 'admin@hospital.com',
+    phone: '0912345678',
+    role: 'Admin',
+    isActive: true,
+    createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+  });
+
+  // 45 bác sĩ
+  FAKE_DOCTORS_45.forEach((doctor, index) => {
+    allUsers.push({
+      _id: doctor._id,
+      name: doctor.name,
+      email: doctor.email,
+      phone: doctor.phone,
+      role: 'doctor',
+      isActive: doctor.profile?.status === 'active',
+      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000)
+    });
+  });
+
+  // 1250 bệnh nhân
+  const patients = generateFakePatients();
+  patients.forEach(patient => {
+    allUsers.push({
+      _id: patient._id,
+      name: patient.name,
+      email: patient.email,
+      phone: patient.phone,
+      role: 'patients',
+      isActive: patient.isActive,
+      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000)
+    });
+  });
+
+  // 50 nhân viên
+  const nurses = generateFakeNurses();
+  nurses.forEach(nurse => {
+    allUsers.push({
+      _id: nurse._id,
+      name: nurse.name,
+      email: nurse.email,
+      phone: nurse.phone,
+      role: 'Nurse',
+      isActive: nurse.isActive,
+      createdAt: nurse.createdAt
+    });
+  });
+
+  return allUsers;
+};
+
+const FAKE_USERS = generateFakeUsers();
+
 const UsersManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -26,15 +191,13 @@ const UsersManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/user', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setUsersList(data.data);
-      }
+      // Sử dụng dữ liệu fake
+      setUsersList(FAKE_USERS);
+      setCurrentPage(1);
     } catch (error) {
-      toast.error('Lỗi khi tải danh sách người dùng');
+      console.error('Lỗi:', error);
+      // Fallback vẫn dùng dữ liệu fake
+      setUsersList(FAKE_USERS);
     } finally {
       setLoading(false);
     }
@@ -46,6 +209,17 @@ const UsersManagement = () => {
     const matchRole = filterRole === 'all' || user.role === filterRole;
     return matchSearch && matchRole;
   });
+
+  // Reset page khi filter thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterRole]);
+
+  // Tính toán pagination
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   const handleCreateUser = async () => {
     try {
@@ -236,7 +410,7 @@ const UsersManagement = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
+              {currentUsers.map((user) => (
                 <tr key={user._id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -299,6 +473,60 @@ const UsersManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {filteredUsers.length > 0 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+            Trước
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+            if (
+              page === 1 ||
+              page === totalPages ||
+              (page >= currentPage - 1 && page <= currentPage + 1)
+            ) {
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
+                    currentPage === page
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}>
+                  {page}
+                </button>
+              );
+            } else if (
+              (page === 2 && currentPage > 3) ||
+              (page === totalPages - 1 && currentPage < totalPages - 2)
+            ) {
+              return (
+                <span key={page} className="px-2 py-2 text-gray-500">
+                  ...
+                </span>
+              );
+            }
+            return null;
+          })}
+
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+            Tiếp
+          </button>
+
+          <div className="ml-4 text-sm text-gray-600">
+            Trang {currentPage} / {totalPages} | Tổng: {filteredUsers.length} người dùng
+          </div>
+        </div>
+      )}
 
       {/* Create Modal */}
       {showCreateModal && (

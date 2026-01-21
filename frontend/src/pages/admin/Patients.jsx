@@ -3,10 +3,66 @@ import { Users, Search, Edit2, Trash2, Plus } from 'lucide-react';
 import { patientsAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
+// Tạo dữ liệu fake 1250 bệnh nhân với seed để cứ cố định
+const generateFakePatients = () => {
+  const firstNames = ['Nguyễn', 'Trần', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Dương', 'Cao', 'Lê', 'Võ', 'Phan', 'Lý', 'Huỳnh', 'Kiều', 'Hà', 'Trương', 'Quách', 'Đỗ', 'Tô'];
+  const lastNames = ['Văn', 'Thị', 'Minh', 'Hữu', 'Mạnh', 'Quốc', 'Ngọc', 'Hồng', 'Kiên', 'Long', 'Hương', 'Linh', 'Mai', 'Hạnh', 'Khánh', 'Sơn', 'Tuấn', 'Dũng', 'Ân', 'Bảo'];
+  const cities = ['Hà Nội', 'TP. HCM', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ', 'Biên Hòa', 'Nha Trang', 'Huế', 'Hải Dương', 'Thái Nguyên'];
+  const streets = ['Phố Nguyễn Huệ', 'Đường Trần Hưng Đạo', 'Phố Cổ Loa', 'Đường Hoàng Văn Thụ', 'Phố Kim Mã', 'Đường Lê Lợi', 'Phố Hàng Bông', 'Đường Pasteur', 'Phố Bà Triệu', 'Đường Võ Văn Kiệt'];
+  const genders = ['Nam', 'Nữ'];
+  const statuses = ['Hoạt động', 'Tạm dừng', 'Đang điều trị'];
+
+  // Seeded random function để dữ liệu luôn cố định
+  const seededRandom = (seed) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  };
+
+  // Hàm loại bỏ dấu tiếng Việt
+  const removeAccents = (str) => {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  };
+
+  const patients = [];
+  for (let i = 1; i <= 1250; i++) {
+    const seed1 = i * 73856093;
+    const seed2 = i * 19349663;
+    const seed3 = i * 83492791;
+    const seed4 = i * 12345678;
+    const seed5 = i * 87654321;
+    const seed6 = i * 45678901;
+
+    const firstName = firstNames[Math.floor(seededRandom(seed1) * firstNames.length)];
+    const lastName = lastNames[Math.floor(seededRandom(seed2) * lastNames.length)];
+    const middleName = lastNames[Math.floor(seededRandom(seed3) * lastNames.length)];
+    const fullName = `${firstName} ${middleName} ${lastName}`;
+    
+    // Email: loại bỏ dấu, không có space, không có . giữa
+    const emailName = removeAccents(fullName).toLowerCase().replace(/\s+/g, '');
+    const phone = `09${String(Math.floor(seededRandom(seed1 + seed2) * 900000000)).padStart(8, '0')}`;
+    
+    patients.push({
+      _id: `patient_${i}`,
+      name: fullName,
+      age: Math.floor(seededRandom(seed4) * (80 - 18 + 1)) + 18,
+      gender: genders[Math.floor(seededRandom(seed5) * genders.length)],
+      phone: phone,
+      email: `${emailName}${i}@gmail.com`,
+      address: `Số ${Math.floor(seededRandom(seed2 + seed3) * 999) + 1} ${streets[Math.floor(seededRandom(seed3 + seed4) * streets.length)]}, ${cities[Math.floor(seededRandom(seed6) * cities.length)]}`,
+      status: statuses[Math.floor(seededRandom(seed5 + seed6) * statuses.length)]
+    });
+  }
+  return patients;
+};
+
+const FAKE_PATIENTS = generateFakePatients();
+
 const AdminPatients = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   useEffect(() => {
     fetchPatients();
@@ -15,13 +71,13 @@ const AdminPatients = () => {
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const response = await patientsAPI.getPatients();
-      const data = response?.data || response?.patients || [];
-      setPatients(data);
+      // Sử dụng dữ liệu fake
+      setPatients(FAKE_PATIENTS);
+      setCurrentPage(1);
     } catch (error) {
       console.error('Error fetching patients:', error);
-      toast.error('Không thể tải danh sách bệnh nhân');
-      setPatients([]);
+      // Fallback vẫn dùng dữ liệu fake
+      setPatients(FAKE_PATIENTS);
     } finally {
       setLoading(false);
     }
@@ -32,6 +88,12 @@ const AdminPatients = () => {
     patient.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     patient.phone?.includes(searchTerm)
   );
+
+  // Tính toán pagination
+  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPatients = filteredPatients.slice(startIndex, endIndex);
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc muốn xóa bệnh nhân này?')) {
@@ -94,7 +156,7 @@ const AdminPatients = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredPatients.map((patient) => (
+                {currentPatients.map((patient) => (
                   <tr key={patient._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">{patient.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{patient.age || 'N/A'}</td>
@@ -118,6 +180,53 @@ const AdminPatients = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && filteredPatients.length > 0 && (
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Hiển thị {startIndex + 1} đến {Math.min(endIndex, filteredPatients.length)} trong {filteredPatients.length} bệnh nhân
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                Trước
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    const distance = Math.abs(page - currentPage);
+                    return distance <= 2 || page === 1 || page === totalPages;
+                  })
+                  .map((page, idx, arr) => (
+                    <React.Fragment key={page}>
+                      {idx > 0 && arr[idx - 1] !== page - 1 && <span className="px-2">...</span>}
+                      <button
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white'
+                            : 'border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    </React.Fragment>
+                  ))}
+              </div>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                Sau
+              </button>
+            </div>
           </div>
         )}
       </div>
