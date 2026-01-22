@@ -34,7 +34,7 @@ const PatientNavbar = () => {
       <div className="border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-2 flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-6">
-            <span>Địa chỉ: 123 Đường Sức Khỏe, Hà Nội</span>
+            <span>Địa chỉ: 100 Nguyễn Huệ, Quận 1, TP.HCM</span>
             <span className="hidden sm:inline-flex items-center gap-1">
               <Globe2 className="w-3 h-3" /> Hỗ trợ khách hàng
             </span>

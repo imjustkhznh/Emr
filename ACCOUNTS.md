@@ -147,3 +147,10 @@
 | trinh.van.son@gmail.com | Patient@Son789 |
 | kieu.van.phong@gmail.com | Patient@Phong101 |
 | luu.thi.huong@gmail.com | Patient@Huong202 |
+
+
+      { email: 'ta.thi.kim@gmail.com', password: 'Patient@Kim123' },
+      { email: 'chau.thi.yen@gmail.com', password: 'Patient@Yen456' },
+      { email: 'trinh.van.son@gmail.com', password: 'Patient@Son789' },
+      { email: 'kieu.van.phong@gmail.com', password: 'Patient@Phong101' },
+      { email: 'luu.thi.huong@gmail.com', password: 'Patient@Huong202' }

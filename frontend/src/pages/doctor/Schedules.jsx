@@ -1,166 +1,278 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Search, Filter, Edit, Calendar, MapPin, Loader } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { Clock, Search, Calendar, MapPin, Users, CheckCircle } from 'lucide-react';
+
+// Dữ liệu fake schedules cứng
+const FAKE_SCHEDULES = [
+  {
+    _id: 'sch_1',
+    date: '2026-01-19',
+    dayOfWeek: 'Thứ Hai',
+    shifts: [
+      { 
+        shiftName: 'Ca Sáng', 
+        startTime: '08:00', 
+        endTime: '12:00', 
+        room: 'Phòng 2A', 
+        maxPatients: 20, 
+        currentPatients: 12 
+      },
+      { 
+        shiftName: 'Ca Chiều', 
+        startTime: '14:00', 
+        endTime: '18:00', 
+        room: 'Phòng 2B', 
+        maxPatients: 20, 
+        currentPatients: 8 
+      }
+    ]
+  },
+  {
+    _id: 'sch_2',
+    date: '2026-01-20',
+    dayOfWeek: 'Thứ Ba',
+    shifts: [
+      { 
+        shiftName: 'Ca Sáng', 
+        startTime: '08:00', 
+        endTime: '12:00', 
+        room: 'Phòng 2A', 
+        maxPatients: 20, 
+        currentPatients: 15 
+      },
+      { 
+        shiftName: 'Ca Chiều', 
+        startTime: '14:00', 
+        endTime: '18:00', 
+        room: 'Phòng 2B', 
+        maxPatients: 20, 
+        currentPatients: 10 
+      }
+    ]
+  },
+  {
+    _id: 'sch_3',
+    date: '2026-01-21',
+    dayOfWeek: 'Thứ Tư',
+    shifts: [
+      { 
+        shiftName: 'Ca Sáng', 
+        startTime: '08:00', 
+        endTime: '12:00', 
+        room: 'Phòng 2A', 
+        maxPatients: 20, 
+        currentPatients: 18 
+      },
+      { 
+        shiftName: 'Ca Chiều', 
+        startTime: '14:00', 
+        endTime: '18:00', 
+        room: 'Phòng 2B', 
+        maxPatients: 20, 
+        currentPatients: 11 
+      }
+    ]
+  },
+  {
+    _id: 'sch_4',
+    date: '2026-01-22',
+    dayOfWeek: 'Thứ Năm',
+    shifts: [
+      { 
+        shiftName: 'Ca Sáng', 
+        startTime: '08:00', 
+        endTime: '12:00', 
+        room: 'Phòng 2A', 
+        maxPatients: 20, 
+        currentPatients: 14 
+      },
+      { 
+        shiftName: 'Ca Chiều', 
+        startTime: '14:00', 
+        endTime: '18:00', 
+        room: 'Phòng 2B', 
+        maxPatients: 20, 
+        currentPatients: 9 
+      }
+    ]
+  },
+  {
+    _id: 'sch_5',
+    date: '2026-01-23',
+    dayOfWeek: 'Thứ Sáu',
+    shifts: [
+      { 
+        shiftName: 'Ca Sáng', 
+        startTime: '08:00', 
+        endTime: '12:00', 
+        room: 'Phòng 2A', 
+        maxPatients: 20, 
+        currentPatients: 16 
+      },
+      { 
+        shiftName: 'Ca Chiều', 
+        startTime: '14:00', 
+        endTime: '18:00', 
+        room: 'Phòng 2B', 
+        maxPatients: 20, 
+        currentPatients: 7 
+      }
+    ]
+  }
+];
 
 const DoctorSchedules = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [schedules, setSchedules] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchSchedules();
+    // Load dữ liệu fake
+    setSchedules(FAKE_SCHEDULES);
   }, []);
 
-  const fetchSchedules = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:5000/api/schedules/my-schedules', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      if (data.success && data.data) {
-        setSchedules(data.data);
-      } else {
-        console.log('No data received:', data);
-      }
-    } catch (error) {
-      console.error('Error fetching schedules:', error);
-      toast.error('Lỗi khi tải lịch làm việc');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredSchedules = schedules.filter(schedule => 
-    new Date(schedule.date).toLocaleDateString('vi-VN').toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSchedules = schedules.filter(schedule =>
+    new Date(schedule.date).toLocaleDateString('vi-VN').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    schedule.dayOfWeek.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getShiftDisplay = (shifts) => {
-    if (!shifts || shifts.length === 0) return { morning: 'Không', afternoon: 'Không' };
-    
-    const hasMorning = shifts.some(s => s.shiftName.includes('Sáng'));
-    const hasAfternoon = shifts.some(s => s.shiftName.includes('Chiều'));
-    
-    return {
-      morning: hasMorning ? 'Có' : 'Không',
-      afternoon: hasAfternoon ? 'Có' : 'Không'
-    };
-  };
-
-  const getShiftColor = (hasShift) => {
-    return hasShift === 'Có' 
-      ? 'bg-green-100 text-green-700' 
-      : 'bg-red-100 text-red-700';
-  };
-
-  const getWeekDay = (dateString) => {
+  const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-    return days[date.getDay()];
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  const getOccupancyPercentage = (current, max) => {
+    return Math.round((current / max) * 100);
+  };
+
+  const getOccupancyColor = (percentage) => {
+    if (percentage < 50) return 'text-green-600';
+    if (percentage < 75) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 md:p-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="bg-gradient-to-br from-orange-600 to-orange-700 p-3 rounded-lg">
-          <Clock className="h-8 w-8 text-white" />
-        </div>
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900">Lịch Làm Việc của Tôi</h1>
-          <p className="text-gray-600 mt-1">Xem lịch ca trực và lịch khám</p>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo ngày..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-orange-500"
-            />
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-4 rounded-xl shadow-lg">
+            <Clock className="h-10 w-10 text-white" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Lịch Làm Việc của Tôi</h1>
+            <p className="text-gray-600 mt-1">Xem lịch ca trực và lịch khám hàng tuần</p>
           </div>
         </div>
       </div>
 
-      {/* Schedules Table */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center">
-            <Loader className="w-8 h-8 animate-spin mx-auto text-orange-500" />
-          </div>
-        ) : filteredSchedules.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Ngày</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Thứ</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Ca Sáng</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Ca Chiều</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Phòng</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-900">Ghi Chú</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredSchedules.map((schedule) => {
-                  const shiftDisplay = getShiftDisplay(schedule.shifts);
+      {/* Search Bar */}
+      <div className="mb-8">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo ngày hoặc thứ..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border-2 border-gray-200 focus:outline-none focus:border-blue-500 shadow-md text-lg"
+          />
+        </div>
+      </div>
+
+      {/* Schedules Grid */}
+      <div className="space-y-6">
+        {filteredSchedules.length > 0 ? (
+          filteredSchedules.map((schedule) => (
+            <div
+              key={schedule._id}
+              className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow"
+            >
+              {/* Date Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-6 w-6" />
+                    <div>
+                      <p className="text-2xl font-bold">{formatDate(schedule.date)}</p>
+                      <p className="text-blue-100 text-sm">{schedule.dayOfWeek}</p>
+                    </div>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-blue-100" />
+                </div>
+              </div>
+
+              {/* Shifts */}
+              <div className="p-6 space-y-4">
+                {schedule.shifts.map((shift, index) => {
+                  const occupancyPercentage = getOccupancyPercentage(shift.currentPatients, shift.maxPatients);
+                  const occupancyColor = getOccupancyColor(occupancyPercentage);
 
                   return (
-                    <tr key={schedule._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-orange-500" />
-                          <span className="font-semibold text-gray-900">
-                            {new Date(schedule.date).toLocaleDateString('vi-VN')}
-                          </span>
+                    <div
+                      key={index}
+                      className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-5 border border-gray-200 hover:border-blue-300 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-1">{shift.shiftName}</h3>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Clock className="h-4 w-4" />
+                            <span className="font-semibold">
+                              {shift.startTime} - {shift.endTime}
+                            </span>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-gray-700">{getWeekDay(schedule.date)}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getShiftColor(shiftDisplay.morning)}`}>
-                          {shiftDisplay.morning}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getShiftColor(shiftDisplay.afternoon)}`}>
-                          {shiftDisplay.afternoon}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-orange-500" />
-                          <span className="text-gray-900 font-semibold">
-                            {schedule.shifts?.[0]?.room || '-'}
-                          </span>
+                        <div className="bg-blue-100 px-4 py-2 rounded-lg">
+                          <p className="text-2xl font-bold text-blue-600">{occupancyPercentage}%</p>
+                          <p className="text-xs text-blue-700 font-semibold">Lấp đầy</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-gray-600 text-sm">{schedule.notes || '-'}</span>
-                      </td>
-                    </tr>
+                      </div>
+
+                      {/* Room and Capacity */}
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MapPin className="h-5 w-5 text-orange-500" />
+                            <span className="text-sm text-gray-600 font-semibold">Phòng khám</span>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">{shift.room}</p>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Users className="h-5 w-5 text-green-500" />
+                            <span className="text-sm text-gray-600 font-semibold">Bệnh nhân</span>
+                          </div>
+                          <p className={`text-xl font-bold ${occupancyColor}`}>
+                            {shift.currentPatients}/{shift.maxPatients}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Occupancy Bar */}
+                      <div className="mt-4">
+                        <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              occupancyPercentage < 50
+                                ? 'bg-green-500'
+                                : occupancyPercentage < 75
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                            }`}
+                            style={{ width: `${occupancyPercentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+          ))
         ) : (
-          <div className="p-8 text-center">
-            <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 font-semibold">Không có lịch làm việc</p>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-12 text-center">
+            <Clock className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600 text-lg font-semibold">Không tìm thấy lịch làm việc</p>
           </div>
         )}
       </div>

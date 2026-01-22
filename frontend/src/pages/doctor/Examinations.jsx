@@ -1,24 +1,156 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, Trash2, Download, Eye, User } from 'lucide-react';
-import { examinationAPI, userAPI } from '../../services/apiService';
+import React, { useState } from 'react';
+import { Search, Plus, Edit2, Trash2, Download, Eye, Calendar, Stethoscope, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
+// Fake data
+const FAKE_PATIENT_NAMES = [
+  'Nguyễn Văn An',
+  'Trần Thị Bình',
+  'Phạm Minh Châu',
+  'Hoàng Thị Dung',
+  'Vũ Quốc Gia',
+  'Đặng Ngọc Hạnh',
+  'Bùi Văn Hoàn',
+  'Dương Thị Linh',
+  'Cao Minh Khánh',
+  'Lê Thị Linh'
+];
+
+const FAKE_EXAMINATIONS = [
+  {
+    _id: 'exam_1',
+    patientName: 'Nguyễn Văn An',
+    patientCode: 'BN001',
+    diagnosis: 'Huyết áp cao (Hypertension)',
+    symptoms: 'Đau đầu, chóng mặt, căng cơ cảnh',
+    findings: 'Huyết áp: 160/100 mmHg, Nhịp tim: 85 lần/phút',
+    treatment: 'Kiểm soát chế độ ăn, uống 2L nước/ngày, tập thể dục 30 phút/ngày',
+    notes: 'Bệnh nhân cần tái khám sau 2 tuần',
+    status: 'completed',
+    examinationDate: new Date('2025-01-15')
+  },
+  {
+    _id: 'exam_2',
+    patientName: 'Trần Thị Bình',
+    patientCode: 'BN002',
+    diagnosis: 'Viêm đường hô hấp cấp',
+    symptoms: 'Ho, sốt cao, khó thở',
+    findings: 'Nhiệt độ: 38.5°C, Tiếng ran ở phổi, CXR: viêm phổi khu trú',
+    treatment: 'Dùng kháng sinh, ở yên và giữ ấm',
+    notes: 'Theo dõi nhiệt độ, uống nhiều nước',
+    status: 'completed',
+    examinationDate: new Date('2025-01-14')
+  },
+  {
+    _id: 'exam_3',
+    patientName: 'Phạm Minh Châu',
+    patientCode: 'BN003',
+    diagnosis: 'Tiểu đường loại 2',
+    symptoms: 'Khát nước, tiểu nhiều, mệt mỏi',
+    findings: 'Đường huyết: 250 mg/dL, HbA1c: 8.5%',
+    treatment: 'Dùng Metformin 500mg x 2/ngày, kiểm soát chế độ ăn',
+    notes: 'Tái khám hàng tháng, kiểm tra đường huyết định kỳ',
+    status: 'completed',
+    examinationDate: new Date('2025-01-13')
+  },
+  {
+    _id: 'exam_4',
+    patientName: 'Hoàng Thị Dung',
+    patientCode: 'BN004',
+    diagnosis: 'Viêm dạ dày cấp',
+    symptoms: 'Đau bụng, buồn nôn, ăn uống kém',
+    findings: 'Đau vùng thượng vị, nôn mửa, pH dạ dày cao',
+    treatment: 'Omeprazole 20mg/ngày, ăn loãng, tránh thực phẩm kích thích',
+    notes: 'Cần nội soi sau 3 tuần nếu không cải thiện',
+    status: 'pending',
+    examinationDate: new Date('2025-01-12')
+  },
+  {
+    _id: 'exam_5',
+    patientName: 'Vũ Quốc Gia',
+    patientCode: 'BN005',
+    diagnosis: 'Thoái hóa đốt sống cổ',
+    symptoms: 'Đau cổ, tê tay, hạn chế gập cơ',
+    findings: 'MRI: thoái hóa C5-C6, chèn ép tủy sống nhẹ',
+    treatment: 'Vật lý trị liệu, dùng NSAIDs, giữ tư thế đúng',
+    notes: 'Theo dõi triệu chứng, có thể cần phẫu thuật nếu nặng',
+    status: 'completed',
+    examinationDate: new Date('2025-01-11')
+  },
+  {
+    _id: 'exam_6',
+    patientName: 'Đặng Ngọc Hạnh',
+    patientCode: 'BN006',
+    diagnosis: 'Thiếu máu do thiếu sắt',
+    symptoms: 'Mệt mỏi, yếu, đầu hoa mắt',
+    findings: 'Hemoglobin: 8.5 g/dL, Ferritin: 20 ng/mL',
+    treatment: 'Bổ sung sắt 325mg/ngày, ăn thực phẩm giàu sắt',
+    notes: 'Xét nghiệm lại sau 6 tuần',
+    status: 'completed',
+    examinationDate: new Date('2025-01-10')
+  },
+  {
+    _id: 'exam_7',
+    patientName: 'Bùi Văn Hoàn',
+    patientCode: 'BN007',
+    diagnosis: 'Bệnh tim mạch vành',
+    symptoms: 'Đau ngực, hụt hơi, khi vận động',
+    findings: 'ECG: thiếu máu cơ tim, chuỗi nồng độ Troponin tăng',
+    treatment: 'Aspirin, Beta-blocker, Statin, theo dõi sát',
+    notes: 'Nằm viện theo dõi 3 ngày',
+    status: 'pending',
+    examinationDate: new Date('2025-01-09')
+  },
+  {
+    _id: 'exam_8',
+    patientName: 'Dương Thị Linh',
+    patientCode: 'BN008',
+    diagnosis: 'Bệnh mụn rộp',
+    symptoms: 'Sốt, chán ăn, phát ban mụn nước',
+    findings: 'Phát ban hình bong bóng, ít ở bụng và lưng',
+    treatment: 'Acyclovir 5x/ngày, chườm lạnh, tránh làm vỡ mụn',
+    notes: 'Bệnh sẽ tự khỏi trong 7-10 ngày',
+    status: 'completed',
+    examinationDate: new Date('2025-01-08')
+  },
+  {
+    _id: 'exam_9',
+    patientName: 'Cao Minh Khánh',
+    patientCode: 'BN009',
+    diagnosis: 'Bệnh dạ dày thở mạn tính',
+    symptoms: 'Đau bụng, ăn uống kém, nôn mửa',
+    findings: 'Nội soi: viêm niêm mạc dạ dày, có chẩn đoán H. pylori +',
+    treatment: 'Liệu pháp 3 lần với PPI, Amoxicillin, Clarithromycin',
+    notes: 'Tái khám nội soi sau 2 tháng',
+    status: 'completed',
+    examinationDate: new Date('2025-01-07')
+  },
+  {
+    _id: 'exam_10',
+    patientName: 'Lê Thị Linh',
+    patientCode: 'BN010',
+    diagnosis: 'Viêm khớp dạng thấp',
+    symptoms: 'Đau khớp, sưng, hạn chế vận động',
+    findings: 'RF: 85 IU/mL (bình thường <20), CRP: 15 mg/L (tăng)',
+    treatment: 'Sulfasalazine 2g/ngày, chườm ấm, vật lý trị liệu',
+    notes: 'Cần theo dõi lâu dài, xét nghiệm lại sau 1 tháng',
+    status: 'completed',
+    examinationDate: new Date('2025-01-06')
+  }
+];
+
 const Examinations = () => {
-  // States
   const [showForm, setShowForm] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  
-  const [examinations, setExaminations] = useState([]);
-  const [patients, setPatients] = useState([]);
+  const [examinations, setExaminations] = useState(FAKE_EXAMINATIONS);
   const [selectedExam, setSelectedExam] = useState(null);
   const [editingId, setEditingId] = useState(null);
   
   const [formData, setFormData] = useState({
-    patientId: '',
+    patientName: '',
     diagnosis: '',
     symptoms: '',
     findings: '',
@@ -27,55 +159,15 @@ const Examinations = () => {
     status: 'completed',
   });
 
-  // Load data
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      
-      // Get patients
-      const patRes = await userAPI.getAll();
-      setPatients(patRes.data?.data || []);
-      
-      // Get examinations
-      const examRes = await examinationAPI.getAll();
-      const exams = examRes.data?.data || [];
-      
-      const transformed = exams.map((exam) => ({
-        id: exam._id,
-        patientId: exam.patientId,
-        patientName: exam.patientInfo?.name || 'Unknown',
-        patientCode: exam.patientInfo?.patientCode || 'N/A',
-        diagnosis: exam.diagnosis || '',
-        symptoms: Array.isArray(exam.symptoms) ? exam.symptoms.join(', ') : '',
-        findings: exam.findings || '',
-        treatment: exam.treatment || '',
-        notes: exam.notes || '',
-        status: exam.status || 'completed',
-        examinationDate: exam.examinationDate,
-      }));
-      
-      setExaminations(transformed);
-    } catch (error) {
-      console.error('Load error:', error);
-      toast.error('Lỗi tải dữ liệu');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.patientId) {
+    if (!formData.patientName) {
       toast.error('Chọn bệnh nhân');
       return;
     }
@@ -85,47 +177,40 @@ const Examinations = () => {
       return;
     }
 
-    try {
-      const data = {
-        patientId: formData.patientId,
-        diagnosis: formData.diagnosis,
-        symptoms: formData.symptoms.split(',').map(s => s.trim()).filter(s => s),
-        findings: formData.findings,
-        treatment: formData.treatment,
-        notes: formData.notes,
-        status: formData.status,
+    if (editingId) {
+      setExaminations(examinations.map(ex =>
+        ex._id === editingId
+          ? { ...ex, ...formData }
+          : ex
+      ));
+      toast.success('Cập nhật thành công');
+    } else {
+      const newExam = {
+        _id: `exam_${Date.now()}`,
+        patientCode: `BN${String(examinations.length + 1).padStart(3, '0')}`,
+        ...formData,
+        examinationDate: new Date()
       };
-
-      if (editingId) {
-        await examinationAPI.update(editingId, data);
-        toast.success('Cập nhật thành công');
-      } else {
-        await examinationAPI.create(data);
-        toast.success('Tạo thành công');
-      }
-
-      setFormData({
-        patientId: '',
-        diagnosis: '',
-        symptoms: '',
-        findings: '',
-        treatment: '',
-        notes: '',
-        status: 'completed',
-      });
-      setEditingId(null);
-      setShowForm(false);
-      
-      loadData();
-    } catch (error) {
-      console.error('Submit error:', error);
-      toast.error('Lỗi: ' + (error.response?.data?.message || error.message));
+      setExaminations([...examinations, newExam]);
+      toast.success('Tạo thành công');
     }
+
+    setFormData({
+      patientName: '',
+      diagnosis: '',
+      symptoms: '',
+      findings: '',
+      treatment: '',
+      notes: '',
+      status: 'completed',
+    });
+    setEditingId(null);
+    setShowForm(false);
   };
 
   const handleEdit = (exam) => {
     setFormData({
-      patientId: exam.patientId,
+      patientName: exam.patientName,
       diagnosis: exam.diagnosis,
       symptoms: exam.symptoms,
       findings: exam.findings,
@@ -133,45 +218,51 @@ const Examinations = () => {
       notes: exam.notes,
       status: exam.status,
     });
-    setEditingId(exam.id);
+    setEditingId(exam._id);
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await examinationAPI.delete(id);
-      toast.success('Xóa thành công');
-      loadData();
-      setShowDeleteModal(null);
-    } catch (error) {
-      console.error('Delete error:', error);
-      toast.error('Lỗi xóa');
-    }
+  const handleDelete = (id) => {
+    setExaminations(examinations.filter(ex => ex._id !== id));
+    toast.success('Xóa thành công');
+    setShowDeleteModal(null);
   };
 
   const handleDownload = (exam) => {
     const content = `PHIẾU KHÁM BỆNH
-========================
+${'═'.repeat(60)}
 Bệnh nhân: ${exam.patientName}
 Mã BN: ${exam.patientCode}
+Ngày khám: ${new Date(exam.examinationDate).toLocaleDateString('vi-VN')}
 
-Chẩn đoán: ${exam.diagnosis}
-Triệu chứng: ${exam.symptoms}
-Phát hiện: ${exam.findings}
-Điều trị: ${exam.treatment}
-Ghi chú: ${exam.notes}
-Trạng thái: ${exam.status}
-========================`;
+CHẨN ĐOÁN:
+${exam.diagnosis}
+
+TRIỆU CHỨNG:
+${exam.symptoms}
+
+KẾT QUẢ KIỂM TRA:
+${exam.findings}
+
+PHƯƠNG PHÁP ĐIỀU TRỊ:
+${exam.treatment}
+
+GHI CHÚ:
+${exam.notes}
+
+TRẠNG THÁI: ${exam.status === 'completed' ? 'Hoàn thành' : 'Chờ xử lý'}
+${'═'.repeat(60)}`;
     
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `phieu-kham-${exam.patientCode}.txt`;
+    a.download = `phieu-kham-${exam.patientCode}-${new Date().getTime()}.txt`;
     a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Tải xuống thành công!');
   };
 
-  // Filter
   const filtered = examinations.filter(ex => {
     const matchSearch = ex.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ex.patientCode.includes(searchTerm) ||
@@ -187,339 +278,421 @@ Trạng thái: ${exam.status}
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6 md:p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <div className="bg-gradient-to-br from-green-600 to-emerald-700 p-4 rounded-xl shadow-lg">
+            <Stethoscope className="h-10 w-10 text-white" />
+          </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Quản Lý Phiếu Khám</h1>
-            <p className="text-gray-600 mt-1">Tạo, xem, chỉnh sửa và xóa phiếu khám bệnh</p>
-          </div>
-          <button
-            onClick={() => {
-              setShowForm(!showForm);
-              setEditingId(null);
-              setFormData({
-                patientId: '',
-                diagnosis: '',
-                symptoms: '',
-                findings: '',
-                treatment: '',
-                notes: '',
-                status: 'completed',
-              });
-            }}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
-          >
-            <Plus size={20} />
-            Thêm Phiếu Khám
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-gray-600 text-sm font-semibold">Tổng Phiếu Khám</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{stats.total}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-gray-600 text-sm font-semibold">Hoàn Thành</p>
-            <p className="text-3xl font-bold text-green-600 mt-2">{stats.completed}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-gray-600 text-sm font-semibold">Chờ Xử Lý</p>
-            <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.pending}</p>
+            <h1 className="text-4xl font-bold text-gray-900">Quản Lý Phiếu Khám</h1>
+            <p className="text-gray-600 mt-1">Tạo, xem, chỉnh sửa phiếu khám bệnh</p>
           </div>
         </div>
+        <button 
+          onClick={() => {
+            setShowForm(!showForm);
+            setEditingId(null);
+            setFormData({
+              patientName: '',
+              diagnosis: '',
+              symptoms: '',
+              findings: '',
+              treatment: '',
+              notes: '',
+              status: 'completed',
+            });
+          }}
+          className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors shadow-md hover:shadow-lg"
+        >
+          <Plus className="h-5 w-5" />
+          Phiếu Khám Mới
+        </button>
+      </div>
 
-        {/* Form */}
-        {showForm && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">
-              {editingId ? 'Chỉnh Sửa Phiếu Khám' : 'Tạo Phiếu Khám Mới'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Bệnh nhân *</label>
-                  <select
-                    name="patientId"
-                    value={formData.patientId}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">-- Chọn bệnh nhân --</option>
-                    {patients.map((p, idx) => (
-                      <option key={p._id} value={p._id}>
-                        BN{String(idx + 1).padStart(3, '0')} - {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Chẩn đoán *</label>
-                  <input
-                    type="text"
-                    name="diagnosis"
-                    value={formData.diagnosis}
-                    onChange={handleInputChange}
-                    placeholder="Nhập chẩn đoán"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">Triệu chứng</label>
-                <input
-                  type="text"
-                  name="symptoms"
-                  value={formData.symptoms}
-                  onChange={handleInputChange}
-                  placeholder="Ví dụ: Sốt cao, Ho (cách nhau bằng dấu phẩy)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Kết quả kiểm tra</label>
-                  <input
-                    type="text"
-                    name="findings"
-                    value={formData.findings}
-                    onChange={handleInputChange}
-                    placeholder="Nhập kết quả"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Phương pháp điều trị</label>
-                  <input
-                    type="text"
-                    name="treatment"
-                    value={formData.treatment}
-                    onChange={handleInputChange}
-                    placeholder="Nhập phương pháp"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Ghi chú</label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    placeholder="Nhập ghi chú"
-                    rows="2"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Trạng thái</label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="completed">Hoàn thành</option>
-                    <option value="pending">Chờ xử lý</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
-                >
-                  {editingId ? 'Cập Nhật' : 'Tạo Phiếu Khám'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingId(null);
-                  }}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-semibold"
-                >
-                  Hủy
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Search & Filter */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo tên, mã BN hoặc chẩn đoán..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 md:w-40"
-          >
-            <option value="all">Tất cả</option>
-            <option value="completed">Hoàn thành</option>
-            <option value="pending">Chờ xử lý</option>
-          </select>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <p className="text-gray-600 text-sm font-bold uppercase">Tổng Phiếu Khám</p>
+          <p className="text-4xl font-bold text-green-600 mt-3">{stats.total}</p>
         </div>
-
-        {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-100 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Bệnh Nhân</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Mã BN</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Chẩn Đoán</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Trạng Thái</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold">Hành Động</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
-                      Đang tải dữ liệu...
-                    </td>
-                  </tr>
-                ) : filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
-                      Không có phiếu khám nào
-                    </td>
-                  </tr>
-                ) : (
-                  filtered.map((exam) => (
-                    <tr key={exam.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <User size={16} className="text-gray-400" />
-                          <span className="font-medium">{exam.patientName}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-semibold text-blue-600">{exam.patientCode}</span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">{exam.diagnosis}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                          exam.status === 'completed'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {exam.status === 'completed' ? 'Hoàn thành' : 'Chờ xử lý'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedExam(exam);
-                              setShowViewModal(true);
-                            }}
-                            className="p-2 hover:bg-blue-100 rounded text-blue-600"
-                            title="Xem"
-                          >
-                            <Eye size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleEdit(exam)}
-                            className="p-2 hover:bg-orange-100 rounded text-orange-600"
-                            title="Sửa"
-                          >
-                            <Edit2 size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDownload(exam)}
-                            className="p-2 hover:bg-green-100 rounded text-green-600"
-                            title="Tải"
-                          >
-                            <Download size={18} />
-                          </button>
-                          <button
-                            onClick={() => setShowDeleteModal(exam.id)}
-                            className="p-2 hover:bg-red-100 rounded text-red-600"
-                            title="Xóa"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <p className="text-gray-600 text-sm font-bold uppercase">Hoàn Thành</p>
+          <p className="text-4xl font-bold text-emerald-600 mt-3">{stats.completed}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <p className="text-gray-600 text-sm font-bold uppercase">Chờ Xử Lý</p>
+          <p className="text-4xl font-bold text-yellow-600 mt-3">{stats.pending}</p>
         </div>
       </div>
 
-      {/* View Modal */}
+      {/* Form */}
+      {showForm && (
+        <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 mb-8">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">
+            {editingId ? 'Chỉnh Sửa Phiếu Khám' : 'Tạo Phiếu Khám Mới'}
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Bệnh Nhân *</label>
+                <select
+                  name="patientName"
+                  value={formData.patientName}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500 text-base"
+                >
+                  <option value="">-- Chọn bệnh nhân --</option>
+                  {FAKE_PATIENT_NAMES.map((name, idx) => (
+                    <option key={idx} value={name}>
+                      BN{String(idx + 1).padStart(3, '0')} - {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Chẩn Đoán *</label>
+                <input
+                  type="text"
+                  name="diagnosis"
+                  value={formData.diagnosis}
+                  onChange={handleInputChange}
+                  placeholder="Nhập chẩn đoán"
+                  required
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Triệu Chứng</label>
+              <textarea
+                name="symptoms"
+                value={formData.symptoms}
+                onChange={handleInputChange}
+                placeholder="Nhập triệu chứng (cách nhau bằng dấu phẩy)"
+                rows="2"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Kết Quả Kiểm Tra</label>
+                <textarea
+                  name="findings"
+                  value={formData.findings}
+                  onChange={handleInputChange}
+                  placeholder="Nhập kết quả"
+                  rows="2"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Phương Pháp Điều Trị</label>
+                <textarea
+                  name="treatment"
+                  value={formData.treatment}
+                  onChange={handleInputChange}
+                  placeholder="Nhập phương pháp điều trị"
+                  rows="2"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Ghi Chú</label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  placeholder="Nhập ghi chú"
+                  rows="2"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Trạng Thái</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500"
+                >
+                  <option value="completed">Hoàn Thành</option>
+                  <option value="pending">Chờ Xử Lý</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t">
+              <button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold transition-colors"
+              >
+                {editingId ? 'Cập Nhật' : 'Tạo Phiếu'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingId(null);
+                  setFormData({
+                    patientName: '',
+                    diagnosis: '',
+                    symptoms: '',
+                    findings: '',
+                    treatment: '',
+                    notes: '',
+                    status: 'completed',
+                  });
+                }}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-8 py-3 rounded-lg font-bold transition-colors"
+              >
+                Hủy
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Search & Filter */}
+      <div className="mb-8 flex flex-col md:flex-row gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo tên, mã BN hoặc chẩn đoán..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 shadow-md"
+          />
+        </div>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 shadow-md md:w-48"
+        >
+          <option value="all">Tất Cả</option>
+          <option value="completed">Hoàn Thành</option>
+          <option value="pending">Chờ Xử Lý</option>
+        </select>
+      </div>
+
+      {/* Examinations Grid */}
+      {filtered.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filtered.map((exam) => (
+            <div
+              key={exam._id}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all"
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center font-bold text-xl">
+                      {exam.patientName?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{exam.patientName}</p>
+                      <p className="text-green-100 text-sm flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(exam.examinationDate).toLocaleDateString('vi-VN')}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-4 py-2 rounded-full text-sm font-bold ${
+                    exam.status === 'completed'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-yellow-400/30 text-yellow-100'
+                  }`}>
+                    {exam.status === 'completed' ? '✓ Hoàn Thành' : '⏳ Chờ Xử Lý'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-4">
+                {/* Diagnosis */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-lg p-4 border border-green-200">
+                  <p className="text-xs text-green-600 font-bold uppercase mb-2">Chẩn Đoán</p>
+                  <p className="text-base font-semibold text-gray-900">{exam.diagnosis}</p>
+                </div>
+
+                {/* Symptoms */}
+                {exam.symptoms && (
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+                    <p className="text-xs text-red-600 font-bold uppercase mb-2">Triệu Chứng</p>
+                    <p className="text-sm text-gray-700">{exam.symptoms}</p>
+                  </div>
+                )}
+
+                {/* Findings */}
+                {exam.findings && (
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                    <p className="text-xs text-blue-600 font-bold uppercase mb-2">Kết Quả Kiểm Tra</p>
+                    <p className="text-sm text-gray-700 line-clamp-2">{exam.findings}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex gap-2">
+                <button 
+                  onClick={() => {
+                    setSelectedExam(exam);
+                    setShowViewModal(true);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                >
+                  <Eye className="h-4 w-4" />
+                  Chi Tiết
+                </button>
+                <button 
+                  onClick={() => handleEdit(exam)}
+                  className="flex items-center justify-center gap-2 px-3 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-colors"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </button>
+                <button 
+                  onClick={() => handleDownload(exam)}
+                  className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+                <button 
+                  onClick={() => setShowDeleteModal(exam._id)}
+                  className="flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
+          <Stethoscope className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-600 text-lg font-semibold">Không tìm thấy phiếu khám nào</p>
+        </div>
+      )}
+
+      {/* View Detail Modal */}
       {showViewModal && selectedExam && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-bold">Chi Tiết Phiếu Khám</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-6 flex justify-between items-center z-10">
+              <div>
+                <h2 className="text-2xl font-bold">Chi Tiết Phiếu Khám</h2>
+                <p className="text-green-100 mt-1">{selectedExam.patientName}</p>
+              </div>
+              <button 
+                onClick={() => setShowViewModal(false)}
+                className="hover:bg-green-500 p-2 rounded-lg transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
-            <div className="p-6 space-y-4">
+
+            {/* Content */}
+            <div className="p-8 space-y-6">
+              {/* Patient Info */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Bệnh Nhân</p>
-                  <p className="font-semibold">{selectedExam.patientName}</p>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <p className="text-xs text-green-600 font-bold uppercase mb-2">Tên Bệnh Nhân</p>
+                  <p className="text-lg font-bold text-gray-900">{selectedExam.patientName}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Mã BN</p>
-                  <p className="font-semibold text-blue-600">{selectedExam.patientCode}</p>
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <p className="text-xs text-blue-600 font-bold uppercase mb-2">Mã BN</p>
+                  <p className="text-lg font-bold text-blue-600">{selectedExam.patientCode}</p>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Chẩn Đoán</p>
-                <p className="font-semibold">{selectedExam.diagnosis}</p>
+
+              {/* Date & Status */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <p className="text-xs text-purple-600 font-bold uppercase mb-2">Ngày Khám</p>
+                  <p className="text-base font-semibold text-gray-900">{new Date(selectedExam.examinationDate).toLocaleDateString('vi-VN')}</p>
+                </div>
+                <div className={`p-4 rounded-lg border ${
+                  selectedExam.status === 'completed'
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-yellow-50 border-yellow-200'
+                }`}>
+                  <p className={`text-xs font-bold uppercase mb-2 ${
+                    selectedExam.status === 'completed'
+                      ? 'text-green-600'
+                      : 'text-yellow-600'
+                  }`}>
+                    Trạng Thái
+                  </p>
+                  <p className={`text-base font-bold ${
+                    selectedExam.status === 'completed'
+                      ? 'text-green-700'
+                      : 'text-yellow-700'
+                  }`}>
+                    {selectedExam.status === 'completed' ? 'Hoàn Thành' : 'Chờ Xử Lý'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Triệu Chứng</p>
-                <p>{selectedExam.symptoms || '-'}</p>
+
+              {/* Diagnosis */}
+              <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-lg border-l-4 border-amber-500">
+                <p className="text-xs text-amber-600 font-bold uppercase mb-2">Chẩn Đoán</p>
+                <p className="text-lg font-bold text-gray-900">{selectedExam.diagnosis}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Kết Quả</p>
-                <p>{selectedExam.findings || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Điều Trị</p>
-                <p>{selectedExam.treatment || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Ghi Chú</p>
-                <p>{selectedExam.notes || '-'}</p>
-              </div>
+
+              {/* Symptoms */}
+              {selectedExam.symptoms && (
+                <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-lg border border-red-200">
+                  <p className="text-xs text-red-600 font-bold uppercase mb-3">Triệu Chứng</p>
+                  <p className="text-gray-800 leading-relaxed">{selectedExam.symptoms}</p>
+                </div>
+              )}
+
+              {/* Findings */}
+              {selectedExam.findings && (
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+                  <p className="text-xs text-blue-600 font-bold uppercase mb-3">Kết Quả Kiểm Tra</p>
+                  <p className="text-gray-800 leading-relaxed">{selectedExam.findings}</p>
+                </div>
+              )}
+
+              {/* Treatment */}
+              {selectedExam.treatment && (
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-lg border border-emerald-200">
+                  <p className="text-xs text-emerald-600 font-bold uppercase mb-3">Phương Pháp Điều Trị</p>
+                  <p className="text-gray-800 leading-relaxed">{selectedExam.treatment}</p>
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedExam.notes && (
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg border-l-4 border-purple-500">
+                  <p className="text-xs text-purple-600 font-bold uppercase mb-3">Ghi Chú</p>
+                  <p className="text-gray-800 leading-relaxed">{selectedExam.notes}</p>
+                </div>
+              )}
             </div>
-            <div className="p-6 border-t flex gap-2">
+
+            {/* Footer */}
+            <div className="bg-gray-50 border-t px-8 py-4 flex gap-3 justify-end">
               <button
                 onClick={() => handleDownload(selectedExam)}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition-colors"
               >
-                Tải xuống
+                <Download className="h-4 w-4" />
+                Tải Xuống
               </button>
               <button
                 onClick={() => setShowViewModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-semibold"
+                className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-bold transition-colors"
               >
                 Đóng
               </button>
@@ -528,26 +701,26 @@ Trạng thái: ${exam.status}
         </div>
       )}
 
-      {/* Delete Modal */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-sm w-full">
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-bold">Xác Nhận Xóa</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full">
+            <div className="bg-red-600 text-white px-8 py-6 rounded-t-2xl">
+              <h2 className="text-xl font-bold">Xác Nhận Xóa</h2>
             </div>
-            <div className="p-6">
-              <p className="text-gray-700">Bạn chắc chắn muốn xóa không?</p>
+            <div className="p-8">
+              <p className="text-gray-700 text-lg">Bạn chắc chắn muốn xóa phiếu khám này không? Hành động này không thể hoàn tác.</p>
             </div>
-            <div className="p-6 border-t flex gap-2">
+            <div className="bg-gray-50 border-t px-8 py-4 flex gap-3 justify-end rounded-b-2xl">
               <button
                 onClick={() => setShowDeleteModal(null)}
-                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-semibold"
+                className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-bold transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={() => handleDelete(showDeleteModal)}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold"
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors"
               >
                 Xóa
               </button>

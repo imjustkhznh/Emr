@@ -1,7 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Users, Calendar, CheckCircle, AlertCircle, Download, Filter, Loader } from 'lucide-react';
+import React, { useState } from 'react';
+import { BarChart3, TrendingUp, Users, Calendar, CheckCircle, AlertCircle, Download, Filter } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { examinationAPI, appointmentAPI } from '../../services/apiService';
+
+// Fake data for reports
+const FAKE_REPORT_DATA = {
+  totalPatients: 42,
+  totalAppointments: 156,
+  completedAppointments: 134,
+  pendingAppointments: 15,
+  cancelledAppointments: 7,
+  completionRate: 86,
+  cancellationRate: 4,
+  averageRating: 4.8,
+  appointmentsThisMonth: 28,
+  newPatientsThisMonth: 12,
+  monthlyData: [
+    { month: 'T1', value: 18, max: 100 },
+    { month: 'T2', value: 22, max: 100 },
+    { month: 'T3', value: 28, max: 100 },
+    { month: 'T4', value: 25, max: 100 },
+    { month: 'T5', value: 31, max: 100 },
+    { month: 'T6', value: 28, max: 100 }
+  ],
+  weeklyData: [
+    { day: 'Thứ 2', value: 5 },
+    { day: 'Thứ 3', value: 7 },
+    { day: 'Thứ 4', value: 6 },
+    { day: 'Thứ 5', value: 8 },
+    { day: 'Thứ 6', value: 9 },
+    { day: 'Thứ 7', value: 4 },
+    { day: 'CN', value: 2 }
+  ],
+  statusDistribution: [
+    { status: 'Hoàn thành', count: 134, percentage: 86, color: 'bg-green-500' },
+    { status: 'Chưa hoàn thành', count: 15, percentage: 10, color: 'bg-blue-500' },
+    { status: 'Đã hủy', count: 7, percentage: 4, color: 'bg-red-500' }
+  ]
+};
 
 const StatCard = ({ icon: Icon, title, value, subtitle, bgColor, trend }) => (
   <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all">
@@ -27,170 +62,43 @@ const StatCard = ({ icon: Icon, title, value, subtitle, bgColor, trend }) => (
 );
 
 const Reports = () => {
-  const [reportData, setReportData] = useState(null);
   const [timeRange, setTimeRange] = useState('month');
-  const [loading, setLoading] = useState(true);
-  const [doctorId, setDoctorId] = useState(null);
-  const [doctorProfileId, setDoctorProfileId] = useState(null);
+  const reportData = FAKE_REPORT_DATA;
 
-  useEffect(() => {
-    // Lấy doctorId từ localStorage
-    const user = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('user') || '{}');
-    const userId = user._id || user.id;
-    setDoctorId(userId);
-    console.log('👨‍⚕️ Doctor user ID:', userId);
-  }, []);
+  const handleDownload = () => {
+    const content = `BÁO CÁO HOẠT ĐỘNG KHÁM BỆNH
+${'═'.repeat(60)}
+Kỳ báo cáo: ${timeRange === 'week' ? 'Tuần này' : timeRange === 'month' ? 'Tháng này' : timeRange === 'quarter' ? 'Quý này' : 'Năm này'}
 
-  useEffect(() => {
-    if (doctorId) {
-      fetchReports();
-    }
-  }, [timeRange, doctorId]);
+THỐNG KÊ CHUNG:
+- Tổng số bệnh nhân: ${reportData.totalPatients}
+- Tổng cuộc hẹn: ${reportData.totalAppointments}
+- Hoàn thành: ${reportData.completedAppointments} (${reportData.completionRate}%)
+- Chưa hoàn thành: ${reportData.pendingAppointments}
+- Đã hủy: ${reportData.cancelledAppointments} (${reportData.cancellationRate}%)
+- Đánh giá trung bình: ${reportData.averageRating}⭐
 
-  const fetchReports = async () => {
-    try {
-      setLoading(true);
-      const [examsRes, apptsRes] = await Promise.all([
-        examinationAPI.getAll(),
-        appointmentAPI.getAll()
-      ]);
+THỐNG KÊ THÁNG NÀY:
+- Cuộc hẹn tháng này: ${reportData.appointmentsThisMonth}
+- Bệnh nhân mới: ${reportData.newPatientsThisMonth}
 
-      let exams = examsRes.data?.data || [];
-      let appointments = apptsRes.data?.data || [];
+PHÂN BỐ TÌNH TRẠNG:
+${reportData.statusDistribution.map(item => `- ${item.status}: ${item.count} (${item.percentage}%)`).join('\n')}
 
-      console.log('📊 Raw exams:', exams.length);
-      console.log('📊 Raw appointments:', appointments.length);
-      console.log('👤 Current doctorId:', doctorId);
-      
-      // Lọc dữ liệu chỉ của bác sĩ hiện tại
-      exams = exams.filter(e => 
-        (e.doctorId?._id || e.doctorId) === doctorId || 
-        (e.doctor?._id || e.doctor) === doctorId
-      );
-      
-      // Filter appointments: những appointment này có doctorInfo.userId hoặc doctorId match current doctor
-      // Vì backend trả về tất cả, cần filter ở frontend
-      appointments = appointments.filter(a => {
-        const apptDoctorId = (a.doctorInfo?.userId?._id || a.doctorInfo?.userId || a.doctorId?._id || a.doctorId || '').toString();
-        const currentDoctorId = (doctorId || '').toString();
-        const isMatch = apptDoctorId === currentDoctorId;
-        if (!isMatch && appointments.length > 0) {
-          console.log('🔍 Check:', {
-            apptDoctorId: apptDoctorId.substring(0, 8),
-            currentDoctorId: currentDoctorId.substring(0, 8),
-            doctorInfo: a.doctorInfo,
-            match: isMatch
-          });
-        }
-        return isMatch;
-      });
-      
-      console.log('✅ Filtered exams:', exams.length);
-      console.log('✅ Filtered appointments:', appointments.length);
+${'═'.repeat(60)}`;
 
-      // Tính toán thống kê
-      const completedExams = exams.filter(e => e.status === 'completed' || e.status === 'hoàn thành').length;
-      const completedAppts = appointments.filter(a => a.status === 'completed' || a.status === 'hoàn thành').length;
-      const cancelledAppts = appointments.filter(a => a.status === 'cancelled' || a.status === 'hủy').length;
-      const pendingAppts = appointments.filter(a => a.status === 'pending' || a.status === 'chờ').length;
-      const confirmedAppts = appointments.filter(a => a.status === 'confirmed' || a.status === 'xác nhận').length;
-
-      const totalPatients = new Set(appointments.map(a => a.patientId?._id || a.patientId || a.patientInfo?.name)).size;
-      const completionRate = appointments.length > 0 ? Math.round((completedAppts / appointments.length) * 100) : 0;
-      const cancellationRate = appointments.length > 0 ? Math.round((cancelledAppts / appointments.length) * 100) : 0;
-
-      console.log('📈 Stats:', {
-        total: appointments.length,
-        completed: completedAppts,
-        pending: pendingAppts,
-        cancelled: cancelledAppts,
-        totalPatients: totalPatients
-      });
-
-      // Tính dữ liệu theo tháng (6 tháng gần đây)
-      const monthlyData = generateMonthlyData(appointments);
-      const weeklyData = generateWeeklyData(appointments);
-
-      setReportData({
-        totalPatients: totalPatients,
-        totalAppointments: appointments.length,
-        completedAppointments: completedAppts,
-        pendingAppointments: pendingAppts,
-        cancelledAppointments: cancelledAppts,
-        completionRate: completionRate,
-        cancellationRate: cancellationRate,
-        averageRating: 4.8,
-        appointmentsThisMonth: getAppointmentsThisMonth(appointments),
-        newPatientsThisMonth: 12,
-        monthlyData: monthlyData,
-        statusDistribution: [
-          { status: 'Hoàn thành', count: completedAppts, percentage: completionRate, color: 'bg-green-500' },
-          { status: 'Chưa hoàn thành', count: pendingAppts + confirmedAppts, percentage: Math.round(((pendingAppts + confirmedAppts) / appointments.length) * 100) || 0, color: 'bg-blue-500' },
-          { status: 'Đã hủy', count: cancelledAppts, percentage: cancellationRate, color: 'bg-red-500' }
-        ],
-        weeklyData: weeklyData
-      });
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading reports:', error);
-      toast.error('Không thể lấy dữ liệu báo cáo');
-      setLoading(false);
-    }
-  };
-
-  const generateMonthlyData = (appointments) => {
-    const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'];
-    const monthCounts = {};
-    
-    appointments.forEach(apt => {
-      const date = new Date(apt.appointmentDate || apt.date || apt.createdAt);
-      const month = date.getMonth();
-      months.forEach((m, i) => {
-        if (i === month) {
-          monthCounts[m] = (monthCounts[m] || 0) + 1;
-        }
-      });
-    });
-
-    return months.map(m => ({
-      month: m,
-      value: monthCounts[m] || 0,
-      max: 100
-    }));
-  };
-
-  const generateWeeklyData = (appointments) => {
-    const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
-    const dayCounts = [0, 0, 0, 0, 0, 0, 0];
-
-    const now = new Date();
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 1));
-
-    appointments.forEach(apt => {
-      const date = new Date(apt.appointmentDate || apt.date || apt.createdAt);
-      if (date >= startOfWeek && date <= new Date()) {
-        const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
-        dayCounts[dayIndex]++;
-      }
-    });
-
-    return days.map((day, index) => ({
-      day: day,
-      value: dayCounts[index]
-    }));
-  };
-
-  const getAppointmentsThisMonth = (appointments) => {
-    const now = new Date();
-    const thisMonth = appointments.filter(apt => {
-      const date = new Date(apt.appointmentDate || apt.date || apt.createdAt);
-      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-    });
-    return thisMonth.length;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bao-cao-${new Date().getTime()}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Tải báo cáo thành công!');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -202,7 +110,10 @@ const Reports = () => {
             <p className="text-gray-600 mt-1">Phân tích hoạt động khám bệnh và hiệu suất</p>
           </div>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors">
+        <button 
+          onClick={handleDownload}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors shadow-md hover:shadow-lg"
+        >
           <Download className="h-5 w-5" />
           Xuất Báo Cáo
         </button>
@@ -223,146 +134,135 @@ const Reports = () => {
         </select>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-lg border border-gray-100">
-          <div className="text-center">
-            <Loader className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
-            <p className="text-gray-600 font-semibold">Đang tải dữ liệu...</p>
+      {/* Main Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          icon={Users}
+          title="Tổng Số Bệnh Nhân"
+          value={reportData.totalPatients}
+          subtitle="Được quản lý"
+          bgColor="bg-blue-600"
+          trend={8}
+        />
+        <StatCard
+          icon={Calendar}
+          title="Tổng Cuộc Hẹn"
+          value={reportData.totalAppointments}
+          subtitle="Tất cả thời gian"
+          bgColor="bg-purple-600"
+          trend={12}
+        />
+        <StatCard
+          icon={CheckCircle}
+          title="Hoàn Thành"
+          value={reportData.completedAppointments}
+          subtitle={`${reportData.completionRate}% tỷ lệ`}
+          bgColor="bg-green-600"
+          trend={5}
+        />
+        <StatCard
+          icon={TrendingUp}
+          title="Đánh Giá Trung Bình"
+          value={`${reportData.averageRating}⭐`}
+          subtitle="Từ bệnh nhân"
+          bgColor="bg-orange-600"
+          trend={2}
+        />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Monthly Chart */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Cuộc Hẹn 6 Tháng Gần Đây</h2>
+          <div className="space-y-4">
+            {reportData.monthlyData.map((item, index) => (
+              <div key={index} className="flex items-center gap-4">
+                <div className="w-10 text-sm font-bold text-gray-600 text-center">{item.month}</div>
+                <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300"
+                    style={{ width: `${(item.value / item.max) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="w-12 text-right text-sm font-bold text-gray-900">{item.value}</div>
+              </div>
+            ))}
           </div>
         </div>
-      ) : reportData ? (
-        <>
-          {/* Main Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              icon={Users}
-              title="Tổng Số Bệnh Nhân"
-              value={reportData.totalPatients}
-              subtitle="Được quản lý"
-              bgColor="bg-blue-600"
-              trend={8}
-            />
-            <StatCard
-              icon={Calendar}
-              title="Tổng Cuộc Hẹn"
-              value={reportData.totalAppointments}
-              subtitle="Tất cả thời gian"
-              bgColor="bg-purple-600"
-              trend={12}
-            />
-            <StatCard
-              icon={CheckCircle}
-              title="Hoàn Thành"
-              value={reportData.completedAppointments}
-              subtitle={`${reportData.completionRate}% tỷ lệ`}
-              bgColor="bg-green-600"
-              trend={5}
-            />
-            <StatCard
-              icon={TrendingUp}
-              title="Đánh Giá Trung Bình"
-              value={`${reportData.averageRating}⭐`}
-              subtitle="Từ bệnh nhân"
-              bgColor="bg-orange-600"
-              trend={2}
-            />
-          </div>
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Monthly Chart */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Cuộc Hẹn 6 Tháng Gần Đây</h2>
-              <div className="space-y-4">
-                {reportData.monthlyData.map((item, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-10 text-sm font-bold text-gray-600 text-center">{item.month}</div>
-                    <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300"
-                        style={{ width: `${(item.value / item.max) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="w-12 text-right text-sm font-bold text-gray-900">{item.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Weekly Chart */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Cuộc Hẹn Tuần Này (Theo Ngày)</h2>
-              <div className="flex items-end justify-around h-64 gap-2">
-                {reportData.weeklyData.map((item, index) => {
-                  const maxValue = Math.max(...reportData.weeklyData.map(d => d.value));
-                  const heightPercent = (item.value / maxValue) * 100;
-                  return (
-                    <div key={index} className="flex flex-col items-center gap-2">
-                      <div className="text-xs font-semibold text-gray-700">{item.value}</div>
-                      <div
-                        className="w-8 bg-gradient-to-t from-purple-500 to-purple-400 rounded-t transition-all hover:from-purple-600 hover:to-purple-500"
-                        style={{ height: `${heightPercent}%`, minHeight: '20px' }}
-                      ></div>
-                      <div className="text-xs font-semibold text-gray-600">{item.day}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Status Distribution */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Phân Bố Tình Trạng Cuộc Hẹn</h2>
-            <div className="space-y-6">
-              {reportData.statusDistribution.map((item, index) => (
-                <div key={index}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`${item.color} w-4 h-4 rounded-full`}></div>
-                      <span className="font-semibold text-gray-900">{item.status}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-900">{item.count}</span>
-                      <span className="text-sm font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">{item.percentage}%</span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                    <div
-                      className={`${item.color} h-full transition-all duration-500`}
-                      style={{ width: `${item.percentage}%` }}
-                    ></div>
-                  </div>
+        {/* Weekly Chart */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Cuộc Hẹn Tuần Này (Theo Ngày)</h2>
+          <div className="flex items-end justify-around h-64 gap-2">
+            {reportData.weeklyData.map((item, index) => {
+              const maxValue = Math.max(...reportData.weeklyData.map(d => d.value));
+              const heightPercent = (item.value / maxValue) * 100;
+              return (
+                <div key={index} className="flex flex-col items-center gap-2">
+                  <div className="text-xs font-semibold text-gray-700">{item.value}</div>
+                  <div
+                    className="w-8 bg-gradient-to-t from-purple-500 to-purple-400 rounded-t transition-all hover:from-purple-600 hover:to-purple-500"
+                    style={{ height: `${heightPercent}%`, minHeight: '20px' }}
+                  ></div>
+                  <div className="text-xs font-semibold text-gray-600">{item.day}</div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
+        </div>
+      </div>
 
-          {/* Detailed Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
-              <p className="text-sm font-semibold text-blue-600 uppercase">Chưa hoàn thành</p>
-              <p className="text-4xl font-bold text-blue-900 mt-3">{reportData.pendingAppointments}</p>
-              <p className="text-xs text-blue-600 mt-2">Đang chờ xử lý</p>
+      {/* Status Distribution */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">Phân Bố Tình Trạng Cuộc Hẹn</h2>
+        <div className="space-y-6">
+          {reportData.statusDistribution.map((item, index) => (
+            <div key={index}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`${item.color} w-4 h-4 rounded-full`}></div>
+                  <span className="font-semibold text-gray-900">{item.status}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-gray-900">{item.count}</span>
+                  <span className="text-sm font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">{item.percentage}%</span>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className={`${item.color} h-full transition-all duration-500`}
+                  style={{ width: `${item.percentage}%` }}
+                ></div>
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200">
-              <p className="text-sm font-semibold text-green-600 uppercase">Mới Tháng Này</p>
-              <p className="text-4xl font-bold text-green-900 mt-3">{reportData.newPatientsThisMonth}</p>
-              <p className="text-xs text-green-600 mt-2">Bệnh nhân mới</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200">
-              <p className="text-sm font-semibold text-purple-600 uppercase">Tháng Này</p>
-              <p className="text-4xl font-bold text-purple-900 mt-3">{reportData.appointmentsThisMonth}</p>
-              <p className="text-xs text-purple-600 mt-2">Cuộc hẹn</p>
-            </div>
-            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 border border-red-200">
-              <p className="text-sm font-semibold text-red-600 uppercase">Đã Hủy</p>
-              <p className="text-4xl font-bold text-red-900 mt-3">{reportData.cancelledAppointments}</p>
-              <p className="text-xs text-red-600 mt-2">{reportData.cancellationRate}% tỷ lệ</p>
-            </div>
-          </div>
-        </>
-      ) : null}
+          ))}
+        </div>
+      </div>
+
+      {/* Detailed Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
+          <p className="text-sm font-semibold text-blue-600 uppercase">Chưa hoàn thành</p>
+          <p className="text-4xl font-bold text-blue-900 mt-3">{reportData.pendingAppointments}</p>
+          <p className="text-xs text-blue-600 mt-2">Đang chờ xử lý</p>
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200">
+          <p className="text-sm font-semibold text-green-600 uppercase">Mới Tháng Này</p>
+          <p className="text-4xl font-bold text-green-900 mt-3">{reportData.newPatientsThisMonth}</p>
+          <p className="text-xs text-green-600 mt-2">Bệnh nhân mới</p>
+        </div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200">
+          <p className="text-sm font-semibold text-purple-600 uppercase">Tháng Này</p>
+          <p className="text-4xl font-bold text-purple-900 mt-3">{reportData.appointmentsThisMonth}</p>
+          <p className="text-xs text-purple-600 mt-2">Cuộc hẹn</p>
+        </div>
+        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 border border-red-200">
+          <p className="text-sm font-semibold text-red-600 uppercase">Đã Hủy</p>
+          <p className="text-4xl font-bold text-red-900 mt-3">{reportData.cancelledAppointments}</p>
+          <p className="text-xs text-red-600 mt-2">{reportData.cancellationRate}% tỷ lệ</p>
+        </div>
+      </div>
     </div>
   );
 };
