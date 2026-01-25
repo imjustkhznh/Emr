@@ -90,7 +90,7 @@ const PatientNavbar = () => {
       {/* Main bar */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-3 flex items-center gap-6">
         {/* Logo */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <Link to="/patient/home" className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
           <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">
             Y
           </div>
@@ -98,7 +98,7 @@ const PatientNavbar = () => {
             <p className="font-bold text-primary-700 text-sm">Hệ thống y tế MediCare EMR</p>
             <p className="text-[11px] text-gray-500">Chăm sóc sức khỏe toàn diện</p>
           </div>
-        </div>
+        </Link>
 
         {/* Search */}
         <div className="flex-1 max-w-xl">

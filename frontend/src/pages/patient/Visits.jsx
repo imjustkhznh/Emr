@@ -1,14 +1,57 @@
 import React, { useState } from 'react';
-import { History, MapPin, Calendar, Clock, Download, Eye, Search } from 'lucide-react';
+import { History, MapPin, Calendar, Clock, Download, Eye, Search, X, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 const Visits = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [toast, setToast] = useState(null);
+  const [selectedVisit, setSelectedVisit] = useState(null);
   const [visits] = useState([
     { id: 1, doctorName: 'Dr. Trần Hữu Bình', specialty: 'Tim mạch', date: '2025-01-15', time: '09:00 AM', location: 'Phòng 301', duration: '30 phút', diagnosis: 'Huyết áp cao, cần theo dõi', status: 'completed' },
     { id: 2, doctorName: 'Dr. Đặng Ngọc Hiểu', specialty: 'Tiêu hóa', date: '2025-01-08', time: '02:00 PM', location: 'Phòng 205', duration: '25 phút', diagnosis: 'Trào ngược dạ dày, kê đơn thuốc', status: 'completed' },
     { id: 3, doctorName: 'Dr. Phạm Mạnh Dũng', specialty: 'Ngoại khoa', date: '2024-12-20', time: '10:30 AM', location: 'Phòng 401', duration: '45 phút', diagnosis: 'Khám sau phẫu thuật, kết quả tốt', status: 'completed' },
     { id: 4, doctorName: 'Dr. Lê Thanh Tùng', specialty: 'Hô hấp', date: '2024-12-10', time: '03:00 PM', location: 'Phòng 102', duration: '20 phút', diagnosis: 'Viêm phế quản, kê thuốc', status: 'completed' }
   ]);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type, id: Date.now() });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleViewDetails = (visit) => {
+    setSelectedVisit(visit);
+  };
+
+  const handleDownload = (visit) => {
+    const visitText = `HỒ SƠ LẦN KHÁM BỆNH
+==================================
+Bác Sĩ: ${visit.doctorName}
+Chuyên Khoa: ${visit.specialty}
+Ngày Khám: ${new Date(visit.date).toLocaleDateString('vi-VN')}
+Thời Gian: ${visit.time}
+Thời Lượng: ${visit.duration}
+Địa Điểm: ${visit.location}
+
+CHẨN ĐOÁN:
+${visit.diagnosis}
+
+TRẠNG THÁI: Hoàn thành
+
+Ghi Chú:
+- Thông tin này được cấp bởi phòng khám MediCare EMR
+- Giữ bản sao an toàn
+- Tuân theo hướng dẫn của bác sĩ
+
+Ngày Xuất: ${new Date().toLocaleDateString('vi-VN')}`;
+
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(visitText));
+    element.setAttribute('download', `visit_${visit.id}_${new Date(visit.date).getTime()}.txt`);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    showToast(`Tải xuống hồ sơ khám bệnh thành công`, 'success');
+  };
 
   const filteredVisits = visits.filter(v =>
     v.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -19,6 +62,111 @@ const Visits = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-6 right-6 max-w-sm z-50 animate-in fade-in slide-in-from-top-5 duration-300 ${
+          toast.type === 'success' 
+            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200' 
+            : 'bg-gradient-to-r from-red-50 to-rose-50 border border-red-200'
+        } rounded-lg shadow-lg p-4`}>
+          <div className="flex items-start gap-3">
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            ) : (
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1">
+              <p className={`font-semibold ${toast.type === 'success' ? 'text-green-900' : 'text-red-900'}`}>
+                {toast.type === 'success' ? '✓ Thành công' : '⚠ Lỗi'}
+              </p>
+              <p className={`text-sm mt-1 ${toast.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+                {toast.message}
+              </p>
+            </div>
+            <button
+              onClick={() => setToast(null)}
+              className={`flex-shrink-0 ${toast.type === 'success' ? 'text-green-400 hover:text-green-600' : 'text-red-400 hover:text-red-600'}`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {selectedVisit && (
+        <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 shadow-lg border border-purple-200 max-w-md w-full">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Chi Tiết Lần Khám</h3>
+              <button 
+                onClick={() => setSelectedVisit(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 pb-4 border-b border-gray-200">
+                <div className="bg-purple-50 rounded-lg p-2">
+                  <History className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600 uppercase font-semibold">Bác Sĩ</p>
+                  <p className="text-lg font-bold text-gray-900">{selectedVisit.doctorName}</p>
+                  <p className="text-sm text-gray-600 mt-1">{selectedVisit.specialty}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Ngày Khám</p>
+                <p className="text-gray-900 font-medium flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-purple-600" />
+                  {new Date(selectedVisit.date).toLocaleDateString('vi-VN')}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Thời Gian</p>
+                <p className="text-gray-900 font-medium flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-purple-600" />
+                  {selectedVisit.time}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Thời Lượng</p>
+                <p className="text-gray-900 font-medium">{selectedVisit.duration}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Địa Điểm</p>
+                <p className="text-gray-900 font-medium flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-purple-600" />
+                  {selectedVisit.location}
+                </p>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <p className="text-xs text-purple-700 font-semibold mb-2">📋 Chẩn Đoán</p>
+                <p className="text-sm text-purple-600">{selectedVisit.diagnosis}</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  handleDownload(selectedVisit);
+                  setSelectedVisit(null);
+                }}
+                className="w-full mt-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:shadow-lg text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" /> Tải Xuống Hồ Sơ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-12">
@@ -124,10 +272,16 @@ const Visits = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
-                  <button className="flex-1 bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+                  <button 
+                    onClick={() => handleViewDetails(v)}
+                    className="flex-1 bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2"
+                  >
                     <Eye className="w-4 h-4" /> Xem Chi Tiết
                   </button>
-                  <button className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+                  <button 
+                    onClick={() => handleDownload(v)}
+                    className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2"
+                  >
                     <Download className="w-4 h-4" /> Tải Xuống
                   </button>
                 </div>

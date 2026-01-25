@@ -1,14 +1,67 @@
 import React, { useState } from 'react';
-import { FlaskConical, Download, Search, TrendingUp, Calendar, Share2, AlertCircle } from 'lucide-react';
+import { FlaskConical, Download, Search, TrendingUp, Calendar, Share2, AlertCircle, X, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 const Results = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [toast, setToast] = useState(null);
   const [results] = useState([
     { id: 1, testName: 'Xét nghiệm Máu', date: '2025-01-15', status: 'normal', value: 'WBC: 7.5, RBC: 4.8', doctor: 'Dr. Trần Hữu Bình' },
     { id: 2, testName: 'Xét nghiệm Cholesterol', date: '2025-01-20', status: 'abnormal', value: 'Total: 250 (cao)', doctor: 'Dr. Đặng Ngọc Hiểu' },
     { id: 3, testName: 'Xét nghiệm Glucose', date: '2025-01-22', status: 'normal', value: 'Fasting: 95 mg/dL', doctor: 'Dr. Phạm Mạnh Dũng' },
     { id: 4, testName: 'Siêu âm Tim', date: '2025-01-10', status: 'normal', value: 'Cấu trúc bình thường', doctor: 'Dr. Lê Thanh Tùng' }
   ]);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type, id: Date.now() });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleDownload = (result) => {
+    const resultText = `KẾT QUẢ XÉT NGHIỆM
+==================================
+Tên Xét Nghiệm: ${result.testName}
+Ngày Thực Hiện: ${new Date(result.date).toLocaleDateString('vi-VN')}
+Bác Sĩ: ${result.doctor}
+
+KẾT QUẢ:
+${result.value}
+
+TRẠNG THÁI: ${result.status === 'normal' ? 'BÌNH THƯỜNG ✓' : 'BẤT THƯỜNG ⚠'}
+
+Ghi Chú:
+- Kết quả này được cấp bởi phòng khám MediCare EMR
+- Vui lòng tư vấn với bác sĩ về kết quả
+- Giữ bản sao an toàn
+
+Ngày Xuất: ${new Date().toLocaleDateString('vi-VN')}`;
+
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(resultText));
+    element.setAttribute('download', `result_${result.id}_${result.testName.replace(/\s+/g, '_')}.txt`);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    showToast(`Tải xuống kết quả xét nghiệm thành công`, 'success');
+  };
+
+  const handleShare = (result) => {
+    const shareText = `Kết Quả Xét Nghiệm\n\n${result.testName}\nKết Quả: ${result.value}\nTrạng Thái: ${result.status === 'normal' ? 'Bình Thường' : 'Bất Thường'}\nNgày: ${new Date(result.date).toLocaleDateString('vi-VN')}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Kết Quả Xét Nghiệm',
+        text: shareText
+      }).catch(err => showToast('Chia sẻ bị hủy', 'error'));
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(shareText).then(() => {
+        showToast('Đã sao chép kết quả, bạn có thể chia sẻ', 'success');
+      }).catch(() => {
+        showToast('Không thể sao chép kết quả', 'error');
+      });
+    }
+  };
 
   const filteredResults = results.filter(r =>
     r.testName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -19,6 +72,37 @@ const Results = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-6 right-6 max-w-sm z-50 animate-in fade-in slide-in-from-top-5 duration-300 ${
+          toast.type === 'success' 
+            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200' 
+            : 'bg-gradient-to-r from-red-50 to-rose-50 border border-red-200'
+        } rounded-lg shadow-lg p-4`}>
+          <div className="flex items-start gap-3">
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            ) : (
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1">
+              <p className={`font-semibold ${toast.type === 'success' ? 'text-green-900' : 'text-red-900'}`}>
+                {toast.type === 'success' ? '✓ Thành công' : '⚠ Lỗi'}
+              </p>
+              <p className={`text-sm mt-1 ${toast.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+                {toast.message}
+              </p>
+            </div>
+            <button
+              onClick={() => setToast(null)}
+              className={`flex-shrink-0 ${toast.type === 'success' ? 'text-green-400 hover:text-green-600' : 'text-red-400 hover:text-red-600'}`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-12">
@@ -118,10 +202,16 @@ const Results = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
-                  <button className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+                  <button 
+                    onClick={() => handleDownload(r)}
+                    className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2"
+                  >
                     <Download className="w-4 h-4" /> Tải Xuống
                   </button>
-                  <button className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+                  <button 
+                    onClick={() => handleShare(r)}
+                    className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2"
+                  >
                     <Share2 className="w-4 h-4" /> Chia Sẻ
                   </button>
                 </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, User, Stethoscope, MapPin, Phone, Search, Plus, Edit2, Trash2, CheckCircle, Clock3, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, User, Stethoscope, MapPin, Phone, Search, Plus, Edit2, Trash2, CheckCircle, Clock3, X, AlertCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 const Appointments = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -7,6 +7,20 @@ const Appointments = () => {
   const [showDoctorSchedule, setShowDoctorSchedule] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    specialty: '',
+    doctor: '',
+    date: '',
+    time: '',
+    reason: ''
+  });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type, id: Date.now() });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Danh sách bác sĩ với lịch làm việc
   const DOCTORS_LIST = [
@@ -113,6 +127,45 @@ const Appointments = () => {
 
   const deleteAppointment = (id) => {
     setAppointments(appointments.filter(apt => apt.id !== id));
+    showToast('Đã xóa lịch khám thành công', 'success');
+  };
+
+  const startEditAppointment = (apt) => {
+    setEditingId(apt.id);
+    const doc = DOCTORS_LIST.find(d => d.name === apt.doctorName);
+    setEditFormData({
+      specialty: apt.specialty,
+      doctor: doc?.id.toString() || '',
+      date: apt.date,
+      time: apt.time,
+      reason: apt.reason
+    });
+    if (doc) setSelectedDoctor(doc);
+  };
+
+  const handleEditAppointment = () => {
+    if (!editFormData.specialty || !editFormData.doctor || !editFormData.date || !editFormData.time || !editFormData.reason) {
+      showToast('Vui lòng điền đủ thông tin', 'error');
+      return;
+    }
+
+    const selectedDoc = DOCTORS_LIST.find(d => d.id === parseInt(editFormData.doctor));
+    setAppointments(appointments.map(apt => 
+      apt.id === editingId 
+        ? {
+            ...apt,
+            doctorName: selectedDoc.name,
+            specialty: selectedDoc.specialty,
+            date: editFormData.date,
+            time: editFormData.time,
+            location: selectedDoc.location,
+            phone: selectedDoc.phone,
+            reason: editFormData.reason
+          }
+        : apt
+    ));
+    setEditingId(null);
+    showToast('Cập nhật lịch khám thành công', 'success');
   };
 
   const getStatusColor = (status) => {
@@ -135,7 +188,7 @@ const Appointments = () => {
 
   const handleBooking = () => {
     if (!formData.specialty || !formData.doctor || !formData.date || !formData.time || !formData.reason) {
-      alert('Vui lòng điền đủ thông tin');
+      showToast('Vui lòng điền đủ thông tin', 'error');
       return;
     }
 
@@ -155,12 +208,42 @@ const Appointments = () => {
     setAppointments([...appointments, newAppointment]);
     setFormData({ specialty: '', doctor: '', date: '', time: '', reason: '' });
     setShowBooking(false);
-    setBookingSuccess(true);
-    setTimeout(() => setBookingSuccess(false), 3000);
+    showToast('Đặt lịch khám thành công! Chờ xác nhận từ bác sĩ', 'success');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-6 right-6 max-w-sm z-50 animate-in fade-in slide-in-from-top-5 duration-300 ${
+          toast.type === 'success' 
+            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200' 
+            : 'bg-gradient-to-r from-red-50 to-rose-50 border border-red-200'
+        } rounded-lg shadow-lg p-4`}>
+          <div className="flex items-start gap-3">
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            ) : (
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1">
+              <p className={`font-semibold ${toast.type === 'success' ? 'text-green-900' : 'text-red-900'}`}>
+                {toast.type === 'success' ? '✓ Thành công' : '⚠ Lỗi'}
+              </p>
+              <p className={`text-sm mt-1 ${toast.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+                {toast.message}
+              </p>
+            </div>
+            <button
+              onClick={() => setToast(null)}
+              className={`flex-shrink-0 ${toast.type === 'success' ? 'text-green-400 hover:text-green-600' : 'text-red-400 hover:text-red-600'}`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">Lịch Khám Của Tôi</h1>
@@ -226,11 +309,17 @@ const Appointments = () => {
                     <p className="text-sm text-gray-600 mb-4"><strong>Lý do:</strong> {apt.reason}</p>
 
                     <div className="flex gap-2">
-                      <button className="flex-1 bg-blue-50 text-blue-700 py-2 rounded-lg hover:bg-blue-100 transition font-medium text-sm flex items-center justify-center gap-1.5">
+                      <button 
+                        onClick={() => startEditAppointment(apt)}
+                        className="flex-1 bg-blue-50 text-blue-700 py-2 rounded-lg hover:bg-blue-100 transition font-medium text-sm flex items-center justify-center gap-1.5"
+                      >
                         <Edit2 size={16} />
                         Chỉnh sửa
                       </button>
-                      <button onClick={() => deleteAppointment(apt.id)} className="flex-1 bg-red-50 text-red-700 py-2 rounded-lg hover:bg-red-100 transition font-medium text-sm flex items-center justify-center gap-1.5">
+                      <button 
+                        onClick={() => deleteAppointment(apt.id)} 
+                        className="flex-1 bg-red-50 text-red-700 py-2 rounded-lg hover:bg-red-100 transition font-medium text-sm flex items-center justify-center gap-1.5"
+                      >
                         <Trash2 size={16} />
                         Xóa
                       </button>
@@ -363,6 +452,102 @@ const Appointments = () => {
                   >
                     Xác Nhận Đặt Lịch
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Modal */}
+            {editingId && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 max-w-md w-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-gray-800">Chỉnh Sửa Lịch Khám</h3>
+                    <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600">
+                      <X size={20} />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Chuyên khoa</label>
+                      <select 
+                        value={editFormData.specialty}
+                        onChange={(e) => setEditFormData({...editFormData, specialty: e.target.value, doctor: ''})}
+                        className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      >
+                        <option value="">Chọn chuyên khoa</option>
+                        {specialties.map(spec => (
+                          <option key={spec} value={spec}>{spec}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Bác sĩ</label>
+                      <select 
+                        value={editFormData.doctor}
+                        onChange={(e) => {
+                          setEditFormData({...editFormData, doctor: e.target.value});
+                          const doctor = DOCTORS_LIST.find(d => d.id === parseInt(e.target.value));
+                          setSelectedDoctor(doctor);
+                        }}
+                        disabled={!editFormData.specialty}
+                        className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-50"
+                      >
+                        <option value="">Chọn bác sĩ</option>
+                        {(editFormData.specialty ? DOCTORS_LIST.filter(d => d.specialty === editFormData.specialty) : DOCTORS_LIST).map(doc => (
+                          <option key={doc.id} value={doc.id}>
+                            {doc.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ngày</label>
+                      <input 
+                        type="date" 
+                        value={editFormData.date}
+                        onChange={(e) => setEditFormData({...editFormData, date: e.target.value})}
+                        className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Giờ</label>
+                      <input 
+                        type="time" 
+                        value={editFormData.time}
+                        onChange={(e) => setEditFormData({...editFormData, time: e.target.value})}
+                        className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Lý do khám</label>
+                      <textarea 
+                        placeholder="Mô tả tình trạng..." 
+                        value={editFormData.reason}
+                        onChange={(e) => setEditFormData({...editFormData, reason: e.target.value})}
+                        className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm h-16 resize-none"
+                      ></textarea>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button 
+                        onClick={() => setEditingId(null)}
+                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg transition font-semibold text-sm"
+                      >
+                        Hủy
+                      </button>
+                      <button 
+                        onClick={handleEditAppointment}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2.5 rounded-lg hover:shadow-lg transition font-semibold text-sm"
+                      >
+                        Cập Nhật
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

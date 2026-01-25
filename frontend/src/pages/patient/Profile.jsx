@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Heart, Activity, Pill, Edit2, Save, X, Shield, Award } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Heart, Activity, Pill, Edit2, Save, X, Shield, Award, Download, FileText } from 'lucide-react';
 
 const Profile = () => {
   const user = (() => {
@@ -41,6 +41,7 @@ const Profile = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(PATIENT_DATA);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,10 +51,58 @@ const Profile = () => {
     }));
   };
 
-  const handleSave = () => {
-    // Save to localStorage or API
-    setIsEditing(false);
-    // toast.success('Cập nhật hồ sơ thành công!');
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      localStorage.setItem('user', JSON.stringify(formData));
+      setIsEditing(false);
+      alert('✓ Cập nhật hồ sơ thành công!');
+    } catch (error) {
+      alert('✗ Có lỗi xảy ra, vui lòng thử lại!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadProfile = async () => {
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      const data = JSON.stringify(formData, null, 2);
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
+      element.setAttribute('download', `profile_${formData.id}.txt`);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      alert('✓ Tải hồ sơ bệnh nhân thành công!');
+    } catch (error) {
+      alert('✗ Không thể tải tệp!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportCertificate = async () => {
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      const certificate = `GIẤY CHỨNG NHẬN Y TẾ\n\nTên bệnh nhân: ${formData.name}\nID: ${formData.id}\nNgày sinh: ${formData.dob}\nNhóm máu: ${formData.bloodType}\nHuyết áp: ${formData.bloodPressure}\n\nNgày cấp: ${new Date().toLocaleDateString('vi-VN')}\n\nBác sĩ phụ trách: Dr. Nguyễn Văn A`;
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(certificate));
+      element.setAttribute('download', `certificate_${formData.id}.txt`);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      alert('✓ Xuất giấy chứng nhận thành công!');
+    } catch (error) {
+      alert('✗ Không thể xuất giấy chứng nhận!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const calculateAge = (dob) => {
@@ -74,8 +123,8 @@ const Profile = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-5xl border-3 border-white/40">
-                {PATIENT_DATA.avatar}
+              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-5xl border-3 border-white/40 font-bold text-white">
+                {formData.name.charAt(0)}
               </div>
               <div>
                 <h1 className="text-4xl font-bold">{formData.name}</h1>
@@ -83,26 +132,38 @@ const Profile = () => {
                 <p className="text-blue-100 text-sm mt-1">📅 Cập nhật lần cuối: {PATIENT_DATA.lastCheckup}</p>
               </div>
             </div>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-                isEditing
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-white/20 hover:bg-white/30 text-white'
-              }`}
-            >
-              {isEditing ? (
-                <>
-                  <X className="w-5 h-5" />
-                  Hủy
-                </>
-              ) : (
-                <>
-                  <Edit2 className="w-5 h-5" />
-                  Chỉnh sửa
-                </>
+            <div className="flex gap-3">
+              {isEditing && (
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all bg-green-500 hover:bg-green-600 text-white disabled:opacity-50"
+                >
+                  <Save className="w-5 h-5" />
+                  {loading ? 'Đang lưu...' : 'Lưu'}
+                </button>
               )}
-            </button>
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                  isEditing
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : 'bg-white/20 hover:bg-white/30 text-white'
+                }`}
+              >
+                {isEditing ? (
+                  <>
+                    <X className="w-5 h-5" />
+                    Hủy
+                  </>
+                ) : (
+                  <>
+                    <Edit2 className="w-5 h-5" />
+                    Chỉnh sửa
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -459,12 +520,25 @@ const Profile = () => {
 
             {/* Document Actions */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
-              <h3 className="font-bold text-gray-900 mb-4">Tài liệu</h3>
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors mb-3">
-                Tải hồ sơ bệnh nhân
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Tài liệu
+              </h3>
+              <button 
+                onClick={handleDownloadProfile}
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-2 rounded-lg transition-colors mb-3 flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                {loading ? 'Đang tải...' : 'Tải hồ sơ bệnh nhân'}
               </button>
-              <button className="w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-2 rounded-lg transition-colors">
-                Xuất giấy chứng nhận
+              <button 
+                onClick={handleExportCertificate}
+                disabled={loading}
+                className="w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 disabled:opacity-50 font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                {loading ? 'Đang xuất...' : 'Xuất giấy chứng nhận'}
               </button>
             </div>
           </div>
