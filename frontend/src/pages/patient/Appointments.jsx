@@ -1,18 +1,115 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, User, Stethoscope, MapPin, Phone, Search, Plus, Edit2, Trash2, CheckCircle, Clock3, X } from 'lucide-react';
+import { Calendar, Clock, User, Stethoscope, MapPin, Phone, Search, Plus, Edit2, Trash2, CheckCircle, Clock3, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const Appointments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBooking, setShowBooking] = useState(false);
+  const [showDoctorSchedule, setShowDoctorSchedule] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+
+  // Danh sách bác sĩ với lịch làm việc
+  const DOCTORS_LIST = [
+    {
+      id: 1,
+      name: 'Dr. Trần Hữu Bình',
+      specialty: 'Tim mạch',
+      phone: '0912-345-678',
+      location: 'Phòng 301',
+      schedule: [
+        { day: 'Monday', times: ['08:00', '09:00', '10:00', '14:00', '15:00'] },
+        { day: 'Tuesday', times: ['08:00', '09:00', '10:00', '14:00', '15:00'] },
+        { day: 'Wednesday', times: ['08:00', '09:00', '14:00', '15:00'] },
+        { day: 'Thursday', times: ['08:00', '09:00', '10:00', '14:00', '15:00'] },
+        { day: 'Friday', times: ['08:00', '09:00', '10:00', '14:00', '15:00'] },
+      ],
+      availableSlots: 7
+    },
+    {
+      id: 2,
+      name: 'Dr. Đặng Ngọc Hiểu',
+      specialty: 'Tiêu hóa',
+      phone: '0903-456-789',
+      location: 'Phòng 205',
+      schedule: [
+        { day: 'Monday', times: ['09:00', '10:00', '11:00', '14:00'] },
+        { day: 'Tuesday', times: ['09:00', '10:00', '14:00', '15:00', '16:00'] },
+        { day: 'Wednesday', times: ['09:00', '10:00', '11:00', '14:00'] },
+        { day: 'Thursday', times: ['09:00', '14:00', '15:00'] },
+        { day: 'Friday', times: ['09:00', '10:00', '11:00', '14:00', '15:00'] },
+      ],
+      availableSlots: 5
+    },
+    {
+      id: 3,
+      name: 'Dr. Phạm Mạnh Dũng',
+      specialty: 'Ngoại khoa',
+      phone: '0934-567-890',
+      location: 'Phòng 401',
+      schedule: [
+        { day: 'Monday', times: ['07:00', '08:00', '09:00', '13:00', '14:00'] },
+        { day: 'Tuesday', times: ['07:00', '08:00', '13:00', '14:00', '15:00'] },
+        { day: 'Wednesday', times: ['07:00', '08:00', '09:00', '13:00', '14:00'] },
+        { day: 'Thursday', times: ['07:00', '08:00', '09:00', '13:00', '14:00'] },
+        { day: 'Friday', times: ['07:00', '08:00', '13:00', '14:00'] },
+      ],
+      availableSlots: 6
+    },
+    {
+      id: 4,
+      name: 'Dr. Lý Văn Chung',
+      specialty: 'Hô hấp',
+      phone: '0945-678-901',
+      location: 'Phòng 302',
+      schedule: [
+        { day: 'Monday', times: ['10:00', '11:00', '15:00', '16:00'] },
+        { day: 'Tuesday', times: ['10:00', '11:00', '15:00'] },
+        { day: 'Wednesday', times: ['10:00', '11:00', '15:00', '16:00'] },
+        { day: 'Thursday', times: ['10:00', '15:00', '16:00'] },
+        { day: 'Friday', times: ['10:00', '11:00', '15:00', '16:00'] },
+      ],
+      availableSlots: 4
+    },
+    {
+      id: 5,
+      name: 'Dr. Bùi Hồng Anh',
+      specialty: 'Nha khoa',
+      phone: '0956-789-012',
+      location: 'Phòng 501',
+      schedule: [
+        { day: 'Monday', times: ['08:00', '09:00', '14:00', '15:00', '16:00'] },
+        { day: 'Tuesday', times: ['08:00', '09:00', '10:00', '14:00', '15:00'] },
+        { day: 'Wednesday', times: ['08:00', '14:00', '15:00', '16:00'] },
+        { day: 'Thursday', times: ['08:00', '09:00', '10:00', '14:00', '15:00', '16:00'] },
+        { day: 'Friday', times: ['08:00', '09:00', '14:00', '15:00'] },
+      ],
+      availableSlots: 8
+    },
+  ];
+
+  const specialties = [...new Set(DOCTORS_LIST.map(d => d.specialty))];
+
   const [appointments, setAppointments] = useState([
-    { id: 1, doctorName: 'Dr. Trần Hữu Bình', specialty: 'Tim mạch', date: '2025-02-15', time: '09:00 AM', location: 'Phòng 301', phone: '0912-345-678', status: 'confirmed', reason: 'Khám tim mạch' },
-    { id: 2, doctorName: 'Dr. Đặng Ngọc Hiểu', specialty: 'Tiêu hóa', date: '2025-02-20', time: '02:00 PM', location: 'Phòng 205', phone: '0903-456-789', status: 'pending', reason: 'Khám tiêu hóa' },
-    { id: 3, doctorName: 'Dr. Phạm Mạnh Dũng', specialty: 'Ngoại khoa', date: '2025-01-28', time: '10:30 AM', location: 'Phòng 401', phone: '0934-567-890', status: 'completed', reason: 'Khám sau phẫu thuật' }
+    { id: 1, doctorName: 'Dr. Trần Hữu Bình', specialty: 'Tim mạch', date: '2025-02-15', time: '09:00', location: 'Phòng 301', phone: '0912-345-678', status: 'confirmed', reason: 'Khám tim mạch' },
+    { id: 2, doctorName: 'Dr. Đặng Ngọc Hiểu', specialty: 'Tiêu hóa', date: '2025-02-20', time: '14:00', location: 'Phòng 205', phone: '0903-456-789', status: 'pending', reason: 'Khám tiêu hóa' },
+    { id: 3, doctorName: 'Dr. Phạm Mạnh Dũng', specialty: 'Ngoại khoa', date: '2025-01-28', time: '10:30', location: 'Phòng 401', phone: '0934-567-890', status: 'completed', reason: 'Khám sau phẫu thuật' }
   ]);
+
+  const [formData, setFormData] = useState({
+    specialty: '',
+    doctor: '',
+    date: '',
+    time: '',
+    reason: ''
+  });
 
   const filteredAppointments = appointments.filter(apt =>
     apt.doctorName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const filteredDoctors = formData.specialty
+    ? DOCTORS_LIST.filter(d => d.specialty === formData.specialty)
+    : DOCTORS_LIST;
 
   const deleteAppointment = (id) => {
     setAppointments(appointments.filter(apt => apt.id !== id));
@@ -34,6 +131,32 @@ const Appointments = () => {
       case 'completed': return 'bg-gray-100 text-gray-700';
       default: return 'bg-gray-100';
     }
+  };
+
+  const handleBooking = () => {
+    if (!formData.specialty || !formData.doctor || !formData.date || !formData.time || !formData.reason) {
+      alert('Vui lòng điền đủ thông tin');
+      return;
+    }
+
+    const selectedDoc = DOCTORS_LIST.find(d => d.id === parseInt(formData.doctor));
+    const newAppointment = {
+      id: appointments.length + 1,
+      doctorName: selectedDoc.name,
+      specialty: selectedDoc.specialty,
+      date: formData.date,
+      time: formData.time,
+      location: selectedDoc.location,
+      phone: selectedDoc.phone,
+      status: 'pending',
+      reason: formData.reason
+    };
+
+    setAppointments([...appointments, newAppointment]);
+    setFormData({ specialty: '', doctor: '', date: '', time: '', reason: '' });
+    setShowBooking(false);
+    setBookingSuccess(true);
+    setTimeout(() => setBookingSuccess(false), 3000);
   };
 
   return (
@@ -125,6 +248,16 @@ const Appointments = () => {
 
           {/* Right Column - Booking Form */}
           <div className="lg:col-span-1">
+            {bookingSuccess && (
+              <div className="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex items-start gap-3">
+                <CheckCircle2 size={20} className="flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold">Đặt lịch khám thành công!</h4>
+                  <p className="text-sm mt-1">Lịch khám của bạn đang chờ xác nhận từ bác sĩ.</p>
+                </div>
+              </div>
+            )}
+
             <button 
               onClick={() => setShowBooking(!showBooking)}
               className="w-full mb-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition font-semibold"
@@ -145,41 +278,89 @@ const Appointments = () => {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Chuyên khoa</label>
-                    <select className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                      <option>Chọn chuyên khoa</option>
-                      <option>Tim Mạch</option>
-                      <option>Tiêu Hóa</option>
-                      <option>Ngoại Khoa</option>
-                      <option>Hô Hấp</option>
+                    <select 
+                      value={formData.specialty}
+                      onChange={(e) => setFormData({...formData, specialty: e.target.value, doctor: ''})}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    >
+                      <option value="">Chọn chuyên khoa</option>
+                      {specialties.map(spec => (
+                        <option key={spec} value={spec}>{spec}</option>
+                      ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bác sĩ</label>
-                    <select className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                      <option>Chọn bác sĩ</option>
-                      <option>Dr. Trần Hữu Bình</option>
-                      <option>Dr. Đặng Ngọc Hiểu</option>
-                      <option>Dr. Phạm Mạnh Dũng</option>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bác sĩ {formData.specialty && `(${filteredDoctors.length} bác sĩ)`}
+                    </label>
+                    <select 
+                      value={formData.doctor}
+                      onChange={(e) => {
+                        setFormData({...formData, doctor: e.target.value});
+                        const doctor = DOCTORS_LIST.find(d => d.id === parseInt(e.target.value));
+                        setSelectedDoctor(doctor);
+                      }}
+                      disabled={!formData.specialty}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-50"
+                    >
+                      <option value="">Chọn bác sĩ</option>
+                      {filteredDoctors.map(doc => (
+                        <option key={doc.id} value={doc.id}>
+                          {doc.name} ({doc.availableSlots} slot rảnh)
+                        </option>
+                      ))}
                     </select>
                   </div>
+
+                  {selectedDoctor && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                      <div className="font-semibold text-blue-900 mb-2">Lịch làm việc tuần này:</div>
+                      <div className="space-y-1">
+                        {selectedDoctor.schedule.map((day, idx) => (
+                          <div key={idx} className="flex justify-between text-blue-800">
+                            <span className="font-medium">{day.day}:</span>
+                            <span className="text-xs">{day.times.join(', ')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Ngày</label>
-                    <input type="date" className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                    <input 
+                      type="date" 
+                      value={formData.date}
+                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                    />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Giờ</label>
-                    <input type="time" className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                    <input 
+                      type="time" 
+                      value={formData.time}
+                      onChange={(e) => setFormData({...formData, time: e.target.value})}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                    />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Lý do khám</label>
-                    <textarea placeholder="Mô tả tình trạng..." className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm h-20 resize-none"></textarea>
+                    <textarea 
+                      placeholder="Mô tả tình trạng..." 
+                      value={formData.reason}
+                      onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm h-20 resize-none"
+                    ></textarea>
                   </div>
 
-                  <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2.5 rounded-lg hover:shadow-lg transition font-semibold text-sm mt-4">
+                  <button 
+                    onClick={handleBooking}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2.5 rounded-lg hover:shadow-lg transition font-semibold text-sm mt-4"
+                  >
                     Xác Nhận Đặt Lịch
                   </button>
                 </div>

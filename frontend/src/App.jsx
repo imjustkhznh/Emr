@@ -24,8 +24,7 @@ import Visits from './pages/patient/Visits';
 import Results from './pages/patient/Results';
 import Prescriptions from './pages/patient/Prescriptions';
 import Payments from './pages/patient/Payments';
-import Notifications from './pages/patient/Notifications';
-import Telemedicine from './pages/patient/Telemedicine';
+
 import Reviews from './pages/patient/Reviews';
 import Articles from './pages/patient/Articles';
 import AdminPrescriptions from './pages/admin/Prescriptions';
@@ -85,8 +84,6 @@ function App() {
             <Route path="results" element={<Results />} />
             <Route path="prescriptions" element={<Prescriptions />} />
             <Route path="payments" element={<Payments />} />
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="telemedicine" element={<Telemedicine />} />
             <Route path="reviews" element={<Reviews />} />
             <Route path="articles" element={<Articles />} />
           </Route>

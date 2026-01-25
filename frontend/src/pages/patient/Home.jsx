@@ -164,71 +164,57 @@ const PatientHome = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Quick Navigation */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">Các Dịch Vụ Khác</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
-          <Link to="/patient/appointments" className="bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-blue-200">
-            <div className="mb-3">
-              <Calendar size={28} />
+      <section className="max-w-7xl mx-auto px-6 py-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Các Dịch Vụ Khác</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+          <Link to="/patient/appointments" className="bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 rounded-lg p-3 hover:shadow-md transition transform hover:scale-105 border border-blue-200">
+            <div className="mb-2">
+              <Calendar size={20} />
             </div>
-            <h3 className="font-semibold text-base mb-1">Lịch Khám</h3>
+            <h3 className="font-semibold text-sm mb-0.5">Lịch Khám</h3>
             <p className="text-xs text-blue-700">Quản lý lịch hẹn</p>
           </Link>
-          <Link to="/patient/prescriptions" className="bg-gradient-to-br from-purple-50 to-purple-100 text-purple-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-purple-200">
-            <div className="mb-3">
-              <Pill size={28} />
+          <Link to="/patient/prescriptions" className="bg-gradient-to-br from-purple-50 to-purple-100 text-purple-900 rounded-lg p-3 hover:shadow-md transition transform hover:scale-105 border border-purple-200">
+            <div className="mb-2">
+              <Pill size={20} />
             </div>
-            <h3 className="font-semibold text-base mb-1">Đơn Thuốc</h3>
+            <h3 className="font-semibold text-sm mb-0.5">Đơn Thuốc</h3>
             <p className="text-xs text-purple-700">Xem đơn thuốc</p>
           </Link>
-          <Link to="/patient/results" className="bg-gradient-to-br from-green-50 to-green-100 text-green-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-green-200">
-            <div className="mb-3">
-              <TrendingUp size={28} />
+          <Link to="/patient/results" className="bg-gradient-to-br from-green-50 to-green-100 text-green-900 rounded-lg p-3 hover:shadow-md transition transform hover:scale-105 border border-green-200">
+            <div className="mb-2">
+              <TrendingUp size={20} />
             </div>
-            <h3 className="font-semibold text-base mb-1">Xét Nghiệm</h3>
+            <h3 className="font-semibold text-sm mb-0.5">Xét Nghiệm</h3>
             <p className="text-xs text-green-700">Kết quả xét nghiệm</p>
           </Link>
-          <Link to="/patient/visits" className="bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-cyan-200">
-            <div className="mb-3">
-              <Heart size={28} />
+          <Link to="/patient/visits" className="bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-900 rounded-lg p-3 hover:shadow-md transition transform hover:scale-105 border border-cyan-200">
+            <div className="mb-2">
+              <Heart size={20} />
             </div>
-            <h3 className="font-semibold text-base mb-1">Khám Bệnh</h3>
+            <h3 className="font-semibold text-sm mb-0.5">Khám Bệnh</h3>
             <p className="text-xs text-cyan-700">Lịch sử khám</p>
           </Link>
-          <Link to="/patient/payments" className="bg-gradient-to-br from-orange-50 to-orange-100 text-orange-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-orange-200">
-            <div className="mb-3">
-              <CreditCard size={28} />
+          <Link to="/patient/payments" className="bg-gradient-to-br from-orange-50 to-orange-100 text-orange-900 rounded-lg p-3 hover:shadow-md transition transform hover:scale-105 border border-orange-200">
+            <div className="mb-2">
+              <CreditCard size={20} />
             </div>
-            <h3 className="font-semibold text-base mb-1">Thanh Toán</h3>
+            <h3 className="font-semibold text-sm mb-0.5">Thanh Toán</h3>
             <p className="text-xs text-orange-700">Lịch sử thanh toán</p>
           </Link>
-          <Link to="/patient/reviews" className="bg-gradient-to-br from-yellow-50 to-yellow-100 text-yellow-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-yellow-200">
-            <div className="mb-3">
-              <Star size={28} />
+          <Link to="/patient/reviews" className="bg-gradient-to-br from-yellow-50 to-yellow-100 text-yellow-900 rounded-lg p-3 hover:shadow-md transition transform hover:scale-105 border border-yellow-200">
+            <div className="mb-2">
+              <Star size={20} />
             </div>
-            <h3 className="font-semibold text-base mb-1">Đánh Giá</h3>
+            <h3 className="font-semibold text-sm mb-0.5">Đánh Giá</h3>
             <p className="text-xs text-yellow-700">Đánh giá bác sĩ</p>
           </Link>
-          <Link to="/patient/articles" className="bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-indigo-200">
-            <div className="mb-3">
-              <BookOpen size={28} />
+          <Link to="/patient/articles" className="bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-900 rounded-lg p-3 hover:shadow-md transition transform hover:scale-105 border border-indigo-200">
+            <div className="mb-2">
+              <BookOpen size={20} />
             </div>
-            <h3 className="font-semibold text-base mb-1">Bài Viết</h3>
+            <h3 className="font-semibold text-sm mb-0.5">Bài Viết</h3>
             <p className="text-xs text-indigo-700">Kiến thức sức khỏe</p>
-          </Link>
-          <Link to="/patient/notifications" className="bg-gradient-to-br from-pink-50 to-pink-100 text-pink-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-pink-200">
-            <div className="mb-3">
-              <Bell size={28} />
-            </div>
-            <h3 className="font-semibold text-base mb-1">Thông Báo</h3>
-            <p className="text-xs text-pink-700">Quản lý thông báo</p>
-          </Link>
-          <Link to="/patient/telemedicine" className="bg-gradient-to-br from-red-50 to-red-100 text-red-900 rounded-lg p-5 hover:shadow-md transition transform hover:scale-105 border border-red-200">
-            <div className="mb-3">
-              <Video size={28} />
-            </div>
-            <h3 className="font-semibold text-base mb-1">Tư Vấn</h3>
-            <p className="text-xs text-red-700">Khám trực tuyến</p>
           </Link>
         </div>
       </section>
