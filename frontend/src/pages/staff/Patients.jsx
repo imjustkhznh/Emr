@@ -1,18 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, UserCircle2, Search } from 'lucide-react';
-
-const samplePatientsData = [
-  { id: 'BN001', name: 'Nguyễn Văn An', gender: 'Nam', phone: '0912345678', age: 35, status: 'chua_kham' },
-  { id: 'BN002', name: 'Trần Thị Bình', gender: 'Nữ', phone: '0987654321', age: 28, status: 'da_kham' },
-  { id: 'BN003', name: 'Lê Văn Cường', gender: 'Nam', phone: '0909123123', age: 45, status: 'dang_kham' },
-  { id: 'BN004', name: 'Phạm Thị Dung', gender: 'Nữ', phone: '0911000001', age: 32, status: 'da_huy' },
-  { id: 'BN005', name: 'Hoàng Minh Tuấn', gender: 'Nam', phone: '091000000', age: 50, status: 'chua_kham' },
-  { id: 'BN006', name: 'Vũ Thị Lan', gender: 'Nữ', phone: '091001234', age: 29, status: 'dang_kham' },
-  { id: 'BN007', name: 'Đặng Văn Hùng', gender: 'Nam', phone: '091002468', age: 38, status: 'da_kham' },
-  { id: 'BN008', name: 'Bùi Thị Mai', gender: 'Nữ', phone: '091003702', age: 26, status: 'da_huy' },
-  { id: 'BN009', name: 'Phan Văn Quang', gender: 'Nam', phone: '091004936', age: 42, status: 'chua_kham' },
-  { id: 'BN010', name: 'Đỗ Thị Hạnh', gender: 'Nữ', phone: '091006170', age: 31, status: 'dang_kham' },
-];
+import { samplePatients } from './sampleData';
 
 const StaffPatients = () => {
   const [patients, setPatients] = useState([]);
@@ -20,7 +8,7 @@ const StaffPatients = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    setPatients(samplePatientsData);
+    setPatients(samplePatients);
   }, []);
 
   const filteredPatients = patients.filter(p =>
@@ -114,7 +102,7 @@ const StaffPatients = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <p className="text-sm text-gray-600">Tổng bệnh nhân</p>
             <p className="text-2xl font-bold text-gray-900 mt-2">{patients.length}</p>
@@ -135,6 +123,12 @@ const StaffPatients = () => {
             <p className="text-sm text-gray-600">Chưa khám</p>
             <p className="text-2xl font-bold text-yellow-600 mt-2">
               {patients.filter(p => p.status === 'chua_kham').length}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <p className="text-sm text-gray-600">Đã hủy</p>
+            <p className="text-2xl font-bold text-red-600 mt-2">
+              {patients.filter(p => p.status === 'da_huy').length}
             </p>
           </div>
         </div>

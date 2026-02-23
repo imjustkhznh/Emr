@@ -73,19 +73,8 @@ const DoctorsList = () => {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
-      // Lấy tên bác sĩ hiện tại từ localStorage
-      const currentUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('currentUser')) || {};
-      const currentDoctorName = currentUser.name || 'Dr. Trần Hữu Bình';
-      
-      // Thay thế bác sĩ đầu tiên bằng tên bác sĩ hiện tại
-      const doctors = [...FAKE_DOCTORS];
-      doctors[0] = {
-        ...doctors[0],
-        name: currentDoctorName,
-        email: (currentUser.email || 'tranhuubinh@hospital.com').toLowerCase()
-      };
-      
-      setDoctors(doctors);
+      // Sử dụng dữ liệu fake bác sĩ
+      setDoctors(FAKE_DOCTORS);
     } catch (error) {
       console.error('Error fetching doctors:', error);
       // Fallback vẫn dùng dữ liệu fake

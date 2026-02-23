@@ -48,6 +48,9 @@ import StaffPrescriptions from './pages/staff/Prescriptions';
 import StaffAppointments from './pages/staff/Appointments';
 import StaffDashboard from './pages/staff/Dashboard';
 import StaffPatients from './pages/staff/Patients';
+import StaffPayments from './pages/staff/Payments';
+import StaffExaminations from './pages/staff/Examinations';
+import StaffAccounts from './pages/staff/Accounts';
 
 function App() {
   return (
@@ -115,6 +118,9 @@ function App() {
             <Route path="patients" element={<StaffPatients />} />
             <Route path="prescriptions" element={<StaffPrescriptions />} />
             <Route path="appointments" element={<StaffAppointments />} />
+            <Route path="payments" element={<StaffPayments />} />
+            <Route path="examinations" element={<StaffExaminations />} />
+            <Route path="accounts" element={<StaffAccounts />} />
           </Route>
         </Routes>
       </Router>

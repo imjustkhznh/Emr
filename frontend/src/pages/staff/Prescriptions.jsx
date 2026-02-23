@@ -1,69 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Download, Calendar, Pill, Search, User } from 'lucide-react';
-
-const sampleStaffPrescriptions = [
-  {
-    id: '1',
-    patientId: 'BN001',
-    patientName: 'Nguyễn Văn An',
-    doctorName: 'BS. Trần Văn A',
-    medications: [
-      { name: 'Paracetamol 500mg', quantity: 20, dosage: '2 viên/lần - 3 lần/ngày', duration: '5 ngày' },
-      { name: 'Amoxicillin 250mg', quantity: 15, dosage: '1 viên/lần - 3 lần/ngày', duration: '7 ngày' }
-    ],
-    diagnosis: 'Cảm cúm thông thường',
-    createdDate: '2026-01-10',
-    status: 'active'
-  },
-  {
-    id: '2',
-    patientId: 'BN002',
-    patientName: 'Trần Thị Bình',
-    doctorName: 'BS. Nguyễn Thị B',
-    medications: [
-      { name: 'Vitamin C 500mg', quantity: 30, dosage: '1 viên/lần - 1 lần/ngày', duration: '30 ngày' }
-    ],
-    diagnosis: 'Bổ sung vitamin',
-    createdDate: '2026-01-09',
-    status: 'active'
-  },
-  {
-    id: '3',
-    patientId: 'BN003',
-    patientName: 'Lê Văn Cường',
-    doctorName: 'Dr. Lê Văn C',
-    medications: [
-      { name: 'Omeprazole 20mg', quantity: 28, dosage: '1 viên/lần - 1 lần/ngày', duration: '4 tuần' }
-    ],
-    diagnosis: 'Rối loạn tiêu hóa',
-    createdDate: '2025-12-20',
-    status: 'expired'
-  },
-  {
-    id: '4',
-    patientId: 'BN004',
-    patientName: 'Phạm Thị Dung',
-    doctorName: 'BS. Trần Văn A',
-    medications: [
-      { name: 'Ibuprofen 400mg', quantity: 20, dosage: '1 viên/lần - 2 lần/ngày', duration: '5 ngày' }
-    ],
-    diagnosis: 'Đau đầu',
-    createdDate: '2026-01-11',
-    status: 'active'
-  },
-  {
-    id: '5',
-    patientId: 'BN005',
-    patientName: 'Hoàng Minh Tuấn',
-    doctorName: 'BS. Nguyễn Thị B',
-    medications: [
-      { name: 'Aspirin 500mg', quantity: 20, dosage: '1 viên/lần - 2 lần/ngày', duration: '7 ngày' }
-    ],
-    diagnosis: 'Sốt cao',
-    createdDate: '2026-01-12',
-    status: 'active'
-  },
-];
+import { samplePrescriptions, sampleDoctors } from './sampleData';
 
 const StaffPrescriptions = () => {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -72,9 +9,15 @@ const StaffPrescriptions = () => {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    setPrescriptions(sampleStaffPrescriptions);
+    setPrescriptions(samplePrescriptions);
     setLoading(false);
   }, []);
+
+  // Helper: Lấy tên bác sĩ từ sampleDoctors theo doctorId
+  const getDoctorName = (doctorId) => {
+    const doctor = sampleDoctors.find(d => d.id === doctorId);
+    return doctor ? doctor.name : 'Không rõ';
+  };
 
   const handleDownload = (prescription) => {
     const content = `
@@ -83,7 +26,7 @@ const StaffPrescriptions = () => {
 ====================================
 
 Bệnh nhân: ${prescription.patientName} (${prescription.patientId})
-Bác sĩ kê đơn: ${prescription.doctorName}
+Bác sĩ kê đơn: ${getDoctorName(prescription.doctorId)}
 Chẩn đoán: ${prescription.diagnosis}
 Ngày kê: ${prescription.createdDate}
 
@@ -106,9 +49,10 @@ ${prescription.medications.map((med, idx) =>
   };
 
   const filteredPrescriptions = prescriptions.filter(p => {
+    const doctorName = getDoctorName(p.doctorId);
     const matchesSearch = p.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          p.patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         p.doctorName.toLowerCase().includes(searchTerm.toLowerCase());
+                         doctorName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'all' || p.status === filter;
     return matchesSearch && matchesFilter;
   });
@@ -194,7 +138,7 @@ ${prescription.medications.map((med, idx) =>
                       </div>
                       <div className="ml-7">
                         <p className="text-sm text-gray-700">
-                          <span className="font-medium">Bác sĩ:</span> {prescription.doctorName}
+                          <span className="font-medium">Bác sĩ:</span> {getDoctorName(prescription.doctorId)}
                         </p>
                         <p className="text-sm text-gray-700">
                           <span className="font-medium">Chẩn đoán:</span> {prescription.diagnosis}

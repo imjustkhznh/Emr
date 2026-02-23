@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Users, Calendar, Pill, LogOut } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Users, Calendar, Pill, LogOut, CreditCard, Stethoscope, UserCog } from 'lucide-react';
 
 const StaffLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -11,6 +11,9 @@ const StaffLayout = () => {
     { label: 'Bệnh nhân', icon: Users, path: '/staff/patients' },
     { label: 'Lịch hẹn', icon: Calendar, path: '/staff/appointments' },
     { label: 'Đơn thuốc', icon: Pill, path: '/staff/prescriptions' },
+    { label: 'Thanh toán', icon: CreditCard, path: '/staff/payments' },
+    { label: 'Khám bệnh', icon: Stethoscope, path: '/staff/examinations' },
+    { label: 'Tài khoản', icon: UserCog, path: '/staff/accounts' },
   ];
 
   const handleLogout = () => {
@@ -26,29 +29,29 @@ const StaffLayout = () => {
       <div
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-blue-700 text-white transition-all duration-300 flex flex-col`}
+        } bg-gradient-to-b from-slate-100 via-blue-50 to-blue-100 text-slate-800 transition-all duration-300 flex flex-col border-r border-slate-200 shadow-sm`}
       >
         {/* Logo */}
         <div className="p-6 flex items-center justify-between">
-          {sidebarOpen && <h1 className="text-2xl font-bold">HMS</h1>}
+          {sidebarOpen && <h1 className="text-2xl font-bold text-blue-700">HMS</h1>}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-blue-600 rounded-lg transition"
+            className="p-2 hover:bg-blue-200 rounded-lg transition"
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
         {/* User Info */}
-        <div className="px-6 py-4 border-b border-blue-600">
+        <div className="px-6 py-4 border-b border-slate-200 bg-white/60">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center font-bold">
               Y
             </div>
             {sidebarOpen && (
               <div className="text-sm">
-                <p className="font-semibold">Y Tá</p>
-                <p className="text-blue-200 text-xs">nurse@gmail.com</p>
+                <p className="font-semibold text-slate-800">Y Tá</p>
+                <p className="text-slate-400 text-xs">nurse@gmail.com</p>
               </div>
             )}
           </div>
@@ -60,7 +63,7 @@ const StaffLayout = () => {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-600 transition text-left"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition text-left font-medium"
             >
               <item.icon size={20} />
               {sidebarOpen && <span>{item.label}</span>}
@@ -69,10 +72,10 @@ const StaffLayout = () => {
         </nav>
 
         {/* Logout */}
-        <div className="border-t border-blue-600 p-4">
+        <div className="border-t border-slate-200 p-4 bg-white/60">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-600 transition text-left"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-rose-100 hover:text-rose-700 transition text-left font-medium"
           >
             <LogOut size={20} />
             {sidebarOpen && <span>Đăng xuất</span>}

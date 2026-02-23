@@ -8,7 +8,8 @@ import {
   LogOut,
   Heart,
   BarChart3,
-  DollarSign
+  DollarSign,
+  Sparkles
 } from 'lucide-react';
 import { userAPI } from '../../services/api';
 import { toast } from 'react-toastify';
@@ -75,6 +76,11 @@ const AdminLayout = () => {
       name: 'Hóa Đơn & Thanh Toán', 
       icon: <DollarSign className="h-5 w-5" />, 
       path: '/admin/invoices' 
+    },
+    { 
+      name: 'Quản Lý Chuyên Khoa', 
+      icon: <Sparkles className="h-5 w-5" />, 
+      path: '/admin/specialties' 
     },
     { 
       name: 'Quản Lý Người Dùng', 
@@ -162,6 +168,7 @@ const AdminLayout = () => {
             <h1 className="text-2xl font-bold text-gray-900">
               {location.pathname === '/admin/dashboard' && 'Bảng Điều Khiển Quản Trị'}
               {location.pathname === '/admin/doctors' && 'Quản Lý Bác Sĩ'}
+              {location.pathname === '/admin/specialties' && 'Quản Lý Chuyên Khoa'}
               {location.pathname === '/admin/patients' && 'Quản Lý Bệnh Nhân'}
               {location.pathname === '/admin/appointments' && 'Quản Lý Cuộc Hẹn'}
               {location.pathname === '/admin/examinations' && 'Quản Lý Khám Bệnh'}

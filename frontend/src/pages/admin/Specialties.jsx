@@ -1,13 +1,97 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Plus, Edit, Trash2, Users, Loader } from 'lucide-react';
+import { Sparkles, Plus, Edit, Trash2, Users, Loader, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const Specialties = () => {
   const [specialties, setSpecialties] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    code: ''
+  });
+
+  // Fake data
+  const fakeSpecialties = [
+    {
+      _id: 1,
+      name: 'Tim Mạch',
+      description: 'Chuyên khoa về bệnh tim, mạch máu và huyết áp',
+      doctorCount: 5
+    },
+    {
+      _id: 2,
+      name: 'Hô Hấp',
+      description: 'Chuyên khoa về bệnh đường hô hấp, phổi',
+      doctorCount: 4
+    },
+    {
+      _id: 3,
+      name: 'Tiêu Hóa',
+      description: 'Chuyên khoa về bệnh dạ dày, ruột, gan, tụy',
+      doctorCount: 3
+    },
+    {
+      _id: 4,
+      name: 'Thần Kinh',
+      description: 'Chuyên khoa về bệnh thần kinh, não',
+      doctorCount: 4
+    },
+    {
+      _id: 5,
+      name: 'Ngoài Da',
+      description: 'Chuyên khoa về bệnh da liễu, mụn',
+      doctorCount: 3
+    },
+    {
+      _id: 6,
+      name: 'Nhi Khoa',
+      description: 'Chuyên khoa khám chữa bệnh cho trẻ em',
+      doctorCount: 5
+    },
+    {
+      _id: 7,
+      name: 'Phụ Sản',
+      description: 'Chuyên khoa về phụ nữ và sinh đẻ',
+      doctorCount: 6
+    },
+    {
+      _id: 8,
+      name: 'Chỉnh Hình',
+      description: 'Chuyên khoa về xương, khớp, cơ',
+      doctorCount: 4
+    },
+    {
+      _id: 9,
+      name: 'Mắt',
+      description: 'Chuyên khoa về bệnh mắt, thị lực',
+      doctorCount: 3
+    },
+    {
+      _id: 10,
+      name: 'Tai Mũi Họng',
+      description: 'Chuyên khoa về bệnh tai, mũi, họng',
+      doctorCount: 2
+    },
+    {
+      _id: 11,
+      name: 'Tâm Thần',
+      description: 'Chuyên khoa về bệnh tâm thần, lo âu',
+      doctorCount: 3
+    },
+    {
+      _id: 12,
+      name: 'Ung Thư',
+      description: 'Chuyên khoa về bệnh ung thư',
+      doctorCount: 5
+    }
+  ];
 
   useEffect(() => {
-    fetchSpecialties();
+    // Load fake data immediately
+    setSpecialties(fakeSpecialties);
   }, []);
 
   const fetchSpecialties = async () => {
@@ -27,6 +111,78 @@ const Specialties = () => {
     }
   };
 
+  // Handle Add New
+  const handleAddClick = () => {
+    setIsEditing(false);
+    setFormData({ name: '', description: '', code: '' });
+    setShowModal(true);
+  };
+
+  // Handle Edit
+  const handleEditClick = (specialty) => {
+    setIsEditing(true);
+    setFormData({
+      _id: specialty._id,
+      name: specialty.name,
+      description: specialty.description,
+      code: specialty.code || ''
+    });
+    setShowModal(true);
+  };
+
+  // Handle Delete
+  const handleDeleteClick = (id) => {
+    if (window.confirm('Bạn chắc chắn muốn xóa chuyên khoa này?')) {
+      setSpecialties(specialties.filter(s => s._id !== id));
+      toast.success('Xóa chuyên khoa thành công');
+    }
+  };
+
+  // Handle Input Change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle Submit Form
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!formData.name.trim() || !formData.description.trim()) {
+      toast.error('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+
+    if (isEditing) {
+      // Edit existing
+      setSpecialties(specialties.map(s =>
+        s._id === formData._id ? { ...s, ...formData } : s
+      ));
+      toast.success('Cập nhật chuyên khoa thành công');
+    } else {
+      // Add new
+      const newSpecialty = {
+        _id: specialties.length + 1,
+        ...formData,
+        doctorCount: 0
+      };
+      setSpecialties([...specialties, newSpecialty]);
+      toast.success('Thêm chuyên khoa thành công');
+    }
+
+    setShowModal(false);
+    setFormData({ name: '', description: '', code: '' });
+  };
+
+  // Close Modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setFormData({ name: '', description: '', code: '' });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 space-y-6">
       {/* Header */}
@@ -40,7 +196,10 @@ const Specialties = () => {
             <p className="text-gray-600 mt-1">Quản lý các chuyên khoa khám bệnh</p>
           </div>
         </div>
-        <button className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors">
+        <button 
+          onClick={handleAddClick}
+          className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors"
+        >
           <Plus className="h-5 w-5" />
           Thêm Chuyên Khoa
         </button>
@@ -78,10 +237,18 @@ const Specialties = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleEditClick(specialty)}
+                      className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      title="Chỉnh sửa"
+                    >
                       <Edit className="h-4 w-4" />
                     </button>
-                    <button className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleDeleteClick(specialty._id)}
+                      className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      title="Xóa"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -99,40 +266,83 @@ const Specialties = () => {
         </div>
       )}
 
-      {/* Form */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Thêm Chuyên Khoa Mới</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Tên Chuyên Khoa</label>
-            <input
-              type="text"
-              placeholder="Nhập tên chuyên khoa..."
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-pink-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Mã Chuyên Khoa</label>
-            <input
-              type="text"
-              placeholder="VD: CK001"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-pink-500"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Mô Tả</label>
-            <textarea
-              placeholder="Mô tả chi tiết về chuyên khoa..."
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-pink-500 h-24"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <button className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-              Tạo Chuyên Khoa
-            </button>
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {isEditing ? 'Chỉnh Sửa Chuyên Khoa' : 'Thêm Chuyên Khoa Mới'}
+              </h2>
+              <button 
+                onClick={handleCloseModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Tên Chuyên Khoa *
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Nhập tên chuyên khoa..."
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-pink-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Mã Chuyên Khoa
+                </label>
+                <input
+                  type="text"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleInputChange}
+                  placeholder="VD: CK001"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-pink-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Mô Tả *
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Mô tả chi tiết về chuyên khoa..."
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-pink-500 h-24 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="flex-1 px-4 py-2 border-2 border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  {isEditing ? 'Cập Nhật' : 'Tạo'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

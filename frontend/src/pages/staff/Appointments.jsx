@@ -1,68 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Download, Calendar, Clock, User, Search, Phone } from 'lucide-react';
-
-const sampleStaffAppointments = [
-  {
-    id: '1',
-    patientId: 'BN001',
-    patientName: 'Nguyễn Văn An',
-    patientPhone: '0912345678',
-    doctorName: 'BS. Trần Văn A',
-    specialty: 'Nội khoa',
-    appointmentDate: '2026-01-15',
-    appointmentTime: '09:00',
-    reason: 'Khám tổng quát',
-    status: 'pending'
-  },
-  {
-    id: '2',
-    patientId: 'BN002',
-    patientName: 'Trần Thị Bình',
-    patientPhone: '0987654321',
-    doctorName: 'BS. Nguyễn Thị B',
-    specialty: 'Da liễu',
-    appointmentDate: '2026-01-15',
-    appointmentTime: '10:30',
-    reason: 'Khám da',
-    status: 'confirmed'
-  },
-  {
-    id: '3',
-    patientId: 'BN003',
-    patientName: 'Lê Văn Cường',
-    patientPhone: '0909123123',
-    doctorName: 'Dr. Lê Văn C',
-    specialty: 'Tim mạch',
-    appointmentDate: '2026-01-16',
-    appointmentTime: '14:00',
-    reason: 'Khám tim',
-    status: 'confirmed'
-  },
-  {
-    id: '4',
-    patientId: 'BN004',
-    patientName: 'Phạm Thị Dung',
-    patientPhone: '0911000001',
-    doctorName: 'BS. Trần Văn A',
-    specialty: 'Nội khoa',
-    appointmentDate: '2026-01-16',
-    appointmentTime: '15:30',
-    reason: 'Tái khám',
-    status: 'pending'
-  },
-  {
-    id: '5',
-    patientId: 'BN005',
-    patientName: 'Hoàng Minh Tuấn',
-    patientPhone: '0910000000',
-    doctorName: 'BS. Nguyễn Thị B',
-    specialty: 'Da liễu',
-    appointmentDate: '2026-01-17',
-    appointmentTime: '11:00',
-    reason: 'Khám da mặt',
-    status: 'confirmed'
-  },
-];
+import { sampleAppointments, sampleDoctors } from './sampleData';
 
 const StaffAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -71,7 +9,7 @@ const StaffAppointments = () => {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    setAppointments(sampleStaffAppointments);
+    setAppointments(sampleAppointments);
     setLoading(false);
   }, []);
 
@@ -110,10 +48,17 @@ Lưu ý:
     document.body.removeChild(element);
   };
 
+  // Helper: Lấy tên bác sĩ từ sampleDoctors theo doctorId
+  const getDoctorName = (doctorId) => {
+    const doctor = sampleDoctors.find(d => d.id === doctorId);
+    return doctor ? doctor.name : 'Không rõ';
+  };
+
   const filteredAppointments = appointments.filter(a => {
+    const doctorName = getDoctorName(a.doctorId);
     const matchesSearch = a.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          a.patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         a.doctorName.toLowerCase().includes(searchTerm.toLowerCase());
+                         doctorName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'all' || a.status === filter;
     return matchesSearch && matchesFilter;
   });
@@ -200,7 +145,7 @@ Lưu ý:
                     <tr key={appointment.id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 text-sm font-mono text-gray-900">{appointment.patientId}</td>
                       <td className="px-6 py-4 text-sm text-gray-900 font-medium">{appointment.patientName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{appointment.doctorName}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{getDoctorName(appointment.doctorId)}</td>
                       <td className="px-6 py-4 text-sm text-gray-600 flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         {appointment.appointmentDate}
